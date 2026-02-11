@@ -1,253 +1,642 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Wheel of Pokemons</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      text-align: center;
-      background: #f0f8ff;
-      padding: 20px;
-    }
-    h1 {
-      font-size: 2em;
-      margin-bottom: 20px;
-    }
-    .pokemon-list {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 20px;
-    }
-    .card {
-      width: 240px;
-      max-width: 100%;
-      height: auto;
-      min-height: 360px;
-      background: linear-gradient(to bottom, #ffd366, #f7a500);
-      border: 3px solid #e0b000;
-      border-radius: 12px;
-      padding: 12px;
-      position: relative;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      box-sizing: border-box;
-      overflow: hidden;
-    }
-    .name {
-      font-size: 20px;
-      font-weight: bold;
-      color: #2d2d2d;
-      margin-bottom: 4px;
-      word-wrap: break-word;
-    }
-    .hp {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      font-size: 14px;
-      color: #b22222;
-    }
-    .image {
-      flex: 0 0 140px;
-      background: #fff;
-      margin: 8px 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 8px;
-      overflow: hidden;
-    }
-    .image img {
-      max-width: 100%;
-      max-height: 100%;
-      object-fit: contain;
-    }
-    .text {
-      font-size: 13px;
-      line-height: 1.3;
-      color: #333;
-      margin-top: 4px;
-      word-wrap: break-word;
-      overflow-wrap: break-word;
-    }
-    .footer {
-      font-size: 11px;
-      display: flex;
-      justify-content: space-between;
-      color: #444;
-      border-top: 1px solid rgba(0,0,0,0.1);
-      padding-top: 4px;
-      margin-top: 6px;
-      flex-shrink: 0;
-      flex-wrap: wrap;
-    }
-    #loading {
-      margin-top: 20px;
-      display: none;
-    }
-    #progressBar {
-      width: 100%;
-      max-width: 300px;
-      height: 20px;
-      background: #ccc;
-      margin: 10px auto;
-      border-radius: 10px;
-      overflow: hidden;
-    }
-    #progress {
-      width: 0;
-      height: 100%;
-      background: gold;
-      transition: width 3s linear;
-    }
-    button {
-      background: linear-gradient(to bottom, #ffcc00, #ffaa00);
-      border: none;
-      border-radius: 12px;
-      padding: 12px 24px;
-      font-size: 16px;
-      font-weight: bold;
-      color: #333;
-      cursor: pointer;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-      transition: all 0.3s ease;
-      margin-top: 20px;
-    }
-    button:hover {
-      background: linear-gradient(to bottom, #ffdb4d, #ffc107);
-      transform: translateY(-2px);
-      box-shadow: 0 6px 10px rgba(0,0,0,0.3);
-    }
-    button:active {
-      transform: translateY(1px);
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    }
-    .card-normal {
-      filter: grayscale(30%) brightness(0.95);
-      opacity: 0.9;
-    }
-    .card-shiny {
-      background: linear-gradient(135deg, #fff176, #ffd600, #ffca28);
-      box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
-      position: relative;
-      animation: pulse 2s infinite ease-in-out;
-    }
-    .card-shiny::after {
-      content: '✨';
-      position: absolute;
-      top: -10px;
-      right: -10px;
-      font-size: 24px;
-      animation: twinkle 1s infinite ease-in-out;
-      pointer-events: none;
-      overflow: visible;
-    }
-    @keyframes twinkle {
-      0%, 100% { transform: scale(1); opacity: 0.7; }
-      50% { transform: scale(1.4); opacity: 1; }
-    }
-    @keyframes pulse {
-      0%, 100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.6); }
-      50% { box-shadow: 0 0 30px rgba(255, 215, 0, 1); }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wheel of Pokemons</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .pokemon-bg {
+            position: fixed;
+            opacity: 0.15;
+            pointer-events: none;
+            z-index: 0;
+            filter: brightness(1.2);
+        }
+
+        .pokemon-bg img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .container {
+            display: flex;
+            gap: 20px;
+            max-width: 1600px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            height: fit-content;
+        }
+
+        .sidebar h2 {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 20px;
+        }
+
+        .person-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 8px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .person-item:hover {
+            background: #e0e0e0;
+        }
+
+        .person-item input[type="checkbox"] {
+            margin-right: 10px;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .main-content {
+            flex: 1;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            font-size: 42px;
+            margin-bottom: 25px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .pokemon-card {
+            background: linear-gradient(135deg, #f9d97f 0%, #f5c563 50%, #f9d97f 100%);
+            border-radius: 15px;
+            padding: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pokemon-card::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border-radius: 15px;
+            padding: 3px;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .pokemon-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .card-name {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .card-hp {
+            font-size: 16px;
+            font-weight: bold;
+            color: #e74c3c;
+        }
+
+        .card-image {
+            width: 100%;
+            height: 160px;
+            background: white;
+            border: 3px solid #333;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .card-ability {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 8px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .ability-name {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+
+        .ability-desc {
+            font-size: 12px;
+            color: #666;
+            line-height: 1.3;
+        }
+
+        .card-stats {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+        }
+
+        .stat-badge {
+            background: #3498db;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .card-footer {
+            font-size: 10px;
+            color: #666;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            padding-top: 6px;
+        }
+
+        .pick-button-container {
+            text-align: center;
+            margin-top: 20px;
+            padding-bottom: 30px;
+        }
+
+        .pick-button {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: all 0.3s;
+        }
+
+        .pick-button:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+
+        .pick-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Shiny effects */
+        .shiny {
+            animation: shinyPulse 1s ease-in-out infinite;
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 50%, #ffd700 100%) !important;
+        }
+
+        .shiny .card-image {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 50%, #ffd700 100%);
+            position: relative;
+            border-color: #ffd700;
+        }
+
+        .shiny::before {
+            opacity: 1;
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 50%, #ffd700 100%);
+        }
+
+        @keyframes shinyPulse {
+            0%, 100% { 
+                box-shadow: 0 0 20px rgba(255, 215, 0, 0.6),
+                            0 0 40px rgba(255, 215, 0, 0.4),
+                            0 0 60px rgba(255, 215, 0, 0.2);
+            }
+            50% { 
+                box-shadow: 0 0 30px rgba(255, 215, 0, 0.8),
+                            0 0 60px rgba(255, 215, 0, 0.6),
+                            0 0 90px rgba(255, 215, 0, 0.4);
+            }
+        }
+
+        /* Sparkles */
+        .sparkle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 0 6px 2px rgba(255, 255, 255, 0.8);
+            animation: sparkleAnimation 1s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes sparkleAnimation {
+            0%, 100% { 
+                opacity: 0;
+                transform: scale(0);
+            }
+            50% { 
+                opacity: 1;
+                transform: scale(1.5);
+            }
+        }
+
+        /* Rolling animation */
+        .rolling {
+            animation: roll 0.3s ease-in-out;
+        }
+
+        @keyframes roll {
+            0%, 100% { 
+                transform: scale(1) rotate(0deg);
+            }
+            25% { 
+                transform: scale(0.9) rotate(-5deg);
+            }
+            75% { 
+                transform: scale(1.1) rotate(5deg);
+            }
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <div class="sidebar">
+            <h2>👥 Team Members</h2>
+            <div id="personList"></div>
+        </div>
 
-<h1>Wheel of Pokemons</h1>
-<div class="pokemon-list" id="pokemonList"></div>
-
-<button onclick="pickShiny()">Pick a shiny pokemon to run the standup</button>
-
-<div id="loading">
-  <p>Looking around for shiny one...</p>
-  <div id="progressBar">
-    <div id="progress"></div>
-  </div>
-</div>
-
-<template id="pokemon-card-template">
-  <div class="card">
-    <div class="name"></div>
-    <div class="hp"></div>
-    <div class="image"><img></div>
-    <div class="text power"></div>
-    <div class="text attack"></div>
-    <div class="footer">
-      <div class="weakness"></div>
-      <div class="retreat"></div>
-      <div class="setinfo"></div>
+        <div class="main-content">
+            <h1>Wheel of Pokemons</h1>
+            <div class="cards-container" id="cardsContainer"></div>
+            <div class="pick-button-container">
+                <button class="pick-button" id="pickButton">
+                    Pick a shiny pokemon to run the standup
+                </button>
+            </div>
+        </div>
     </div>
-  </div>
-</template>
 
-<script src="card.js"></script>
-<script>
-  const pokemons = [
-    { name: 'Ankit', file: 'ankit.png' },
-    { name: 'Danny', file: 'danny.png' },
-    { name: 'Marian', file: 'marian.png' },
-    { name: 'Mariusz', file: 'mariusz.png' },
-    { name: 'Minesh', file: 'minesh.png' },
-    { name: 'Muhammad', file: 'muhammad.png' },
-    { name: 'Paul', file: 'paul.png' },
-    { name: 'Deepthi', file: 'deepthi.png' },
-    { name: 'Rares', file: 'rares.png' },
-    { name: 'Yasmin', file: 'yasmin.png' },
-    { name: 'Francois', file: 'francois.png' },
-  ];
+    <script>
+        const ABILITIES = [
+            { name: 'Regex Tamer', desc: 'Crafts regexes that only aliens understand.' },
+            { name: 'Android Emulator Summoner', desc: 'Boots emulator in under 2 minutes. It\'s dark magic.' },
+            { name: 'Dark Mode Mastery', desc: 'Only codes after sunset. Moon-powered productivity.' },
+            { name: 'Jira Magician', desc: 'Closes tickets with no actual work done. It\'s art.' },
+            { name: 'Silent Keyboard Smasher', desc: 'Types furiously. Solves everything. Nobody hears them.' },
+            { name: 'Git Rebase Whisperer', desc: 'Somehow keeps a clean history. At what cost?' },
+            { name: 'Stack Overflow Summoner', desc: 'Copy-pastes with confidence. It always works.' },
+            { name: 'Merge Conflict Resolver', desc: 'Fixes merge conflicts before they even happen.' },
+            { name: 'CSS Flexbox Bender', desc: 'Centers a div on the first try. Legendary.' },
+            { name: 'Production Hotfixer', desc: 'Deploys on Friday at 5PM. Lives dangerously.' },
+            { name: 'Code Review Ninja', desc: 'Spots bugs with eyes closed. Approves in milliseconds.' },
+            { name: 'Legacy Code Archaeologist', desc: 'Deciphers code from 2003. No documentation needed.' },
+            { name: 'Kubernetes Wrangler', desc: 'Tames pods like wild horses. Clusters fear them.' },
+            { name: 'TypeScript Enforcer', desc: 'Types everything. Even comments are typed.' },
+            { name: 'Bug Hunter Supreme', desc: 'Finds bugs that don\'t exist yet.' },
+            { name: 'Caffeine-Powered Coder', desc: 'Runs on coffee and Stack Overflow tabs.' }
+        ];
 
-  const pokemonListEl = document.getElementById('pokemonList');
-  const cardElements = [];
+        const BONUSES = [
+            'Hotfix Friday 5PM – 🔥🙏',
+            'Add Dark Mode – 🌙',
+            'Remove Dead Code – ✂️',
+            'Disable Linter – 🚫',
+            'Add Comments – 💬',
+            'Refactor Everything – 🔄',
+            'Skip Code Review – ⚡',
+            'Auto-merge PRs – 🤖',
+            'Delete Tests – 💥',
+            'Ship It Now – 🚀',
+            'Works On My Machine – 💻',
+            'Force Push Master – 🎯',
+            'Blame Previous Dev – 👻',
+            'Add More Logging – 📝'
+        ];
 
-  window.onload = () => {
-    pokemons.forEach((p, index) => {
-      const card = createPokemonCard({
-        name: p.name,
-        image: p.file
-      });
-      card.classList.add('card-normal');
-      card.dataset.index = index;
-      cardElements.push(card);
-      pokemonListEl.appendChild(card);
-    });
-  };
+        const BLOCKERS = [
+            'Legacy Code ×3',
+            'Meetings ×2',
+            'VPN Issues ×∞',
+            'Unclear Requirements ×2',
+            'Weird QA Feedback ×3',
+            'Slack Notifications ×999+',
+            'App Crash on Fridays ×2',
+            'Merge Conflicts ×1M',
+            'Flaky Tests ×5',
+            'Missing Documentation ×10',
+            'Prod is Down ×1',
+            'Outdated Dependencies ×99',
+            'Memory Leaks ×7',
+            'API Rate Limits ×50',
+            'Circular Dependencies ×4',
+            'Code Freezes ×2',
+            'Build Times ×30min'
+        ];
 
-  function pickShiny() {
-    document.getElementById('loading').style.display = 'block';
-    document.getElementById('progress').style.width = '0';
-    setTimeout(() => {
-      document.getElementById('progress').style.width = '100%';
-    }, 10);
+        const ESCAPES = [
+            'On PTO (Pretending To Organize)',
+            'Mic Muted \'By Mistake\'',
+            'Random Sick Day',
+            'Stepped Out for Coffee',
+            'Switched to Another Branch',
+            'In Another Meeting',
+            'Dog Ate My Keyboard',
+            'Internet Issues',
+            'Zoom Froze',
+            'BRB, Deploying',
+            'Deep in Focus Mode',
+            'Reviewing Architecture',
+            'Learning New Framework',
+            'Refactoring Legacy Code'
+        ];
 
-    setTimeout(() => {
-      document.getElementById('loading').style.display = 'none';
+        function getRandomItem(array) {
+            return array[Math.floor(Math.random() * array.length)];
+        }
 
-      cardElements.forEach((cardEl, i) => {
-        const newCard = createPokemonCard({
-          name: pokemons[i].name,
-          image: pokemons[i].file
-        });
-        newCard.classList.add('card-normal');
-        pokemonListEl.replaceChild(newCard, cardEl);
-        cardElements[i] = newCard;
-      });
+        function generateCardData(name, baseHp) {
+            const ability = getRandomItem(ABILITIES);
+            return {
+                name: name,
+                hp: baseHp,
+                ability: ability.name,
+                desc: ability.desc,
+                bonus: getRandomItem(BONUSES),
+                blocker: getRandomItem(BLOCKERS),
+                escape: getRandomItem(ESCAPES)
+            };
+        }
 
-      const index = Math.floor(Math.random() * pokemons.length);
-      const shinyCard = createPokemonCard({
-        name: pokemons[index].name,
-        image: pokemons[index].file.replace('.png', '_shiny.png')
-      });
-      shinyCard.classList.add('card-shiny');
-      pokemonListEl.replaceChild(shinyCard, cardElements[index]);
-      cardElements[index] = shinyCard;
-    }, 3000);
-  }
-</script>
+        const PEOPLE_DATA = [
+            generateCardData('Ankit', 145),
+            generateCardData('Danny', 148),
+            generateCardData('Marian', 67),
+            generateCardData('Mariusz', 109),
+            generateCardData('Minesh', 80),
+            generateCardData('Muhammad', 65),
+            generateCardData('Paul', 121),
+            generateCardData('Deepthi', 51),
+            generateCardData('Rares', 98),
+            generateCardData('Yasmin', 136),
+            generateCardData('Francois', 131)
+        ];
 
+        let selectedPeople = [];
+        let isRolling = false;
+        let currentShiny = null;
+
+        function saveSelectedToLocalStorage() {
+            const selectedNames = selectedPeople.map(p => p.name);
+            localStorage.setItem('wheelOfPokemons_selected', JSON.stringify(selectedNames));
+        }
+
+        function loadSelectedFromLocalStorage() {
+            const saved = localStorage.getItem('wheelOfPokemons_selected');
+            if (saved) {
+                try {
+                    const selectedNames = JSON.parse(saved);
+                    selectedPeople = PEOPLE_DATA.filter(p => selectedNames.includes(p.name));
+                } catch (e) {
+                    selectedPeople = [...PEOPLE_DATA];
+                }
+            } else {
+                selectedPeople = [...PEOPLE_DATA];
+            }
+        }
+
+        function createPokemonBackground() {
+            const pokemonIds = [1, 4, 7, 25, 39, 54, 104, 133, 143, 147, 151, 172, 175]; // Popular pokemon IDs
+            const positions = [
+                { top: '5%', left: '5%', size: 120 },
+                { top: '15%', right: '8%', size: 100 },
+                { top: '40%', left: '3%', size: 80 },
+                { top: '60%', right: '5%', size: 110 },
+                { top: '75%', left: '10%', size: 90 },
+                { top: '25%', left: '50%', size: 70 },
+                { top: '85%', right: '15%', size: 95 },
+                { top: '50%', left: '92%', size: 85 }
+            ];
+
+            positions.forEach((pos, index) => {
+                const div = document.createElement('div');
+                div.className = 'pokemon-bg';
+                div.style.top = pos.top;
+                if (pos.left) div.style.left = pos.left;
+                if (pos.right) div.style.right = pos.right;
+                div.style.width = pos.size + 'px';
+                div.style.height = pos.size + 'px';
+                
+                const randomPokemon = pokemonIds[Math.floor(Math.random() * pokemonIds.length)];
+                const img = document.createElement('img');
+                img.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${randomPokemon}.png`;
+                img.alt = '';
+                
+                div.appendChild(img);
+                document.body.appendChild(div);
+            });
+        }
+
+        function getAvatarUrl(name, isShiny = false) {
+            if (isShiny) {
+                return `./avatars/${name}-shiny.jpg`;
+            }
+            return `./avatars/${name}.jpg`;
+        }
+
+        function tryLoadShinyAvatar(card, name) {
+            const img = card.querySelector('.card-image img');
+            const shinyUrl = getAvatarUrl(name, true);
+            
+            // Try to load shiny version
+            const testImg = new Image();
+            testImg.onload = function() {
+                // Shiny version exists, use it
+                img.src = shinyUrl;
+            };
+            testImg.onerror = function() {
+                // Shiny version doesn't exist, keep normal avatar
+                // Do nothing, img.src stays as normal
+            };
+            testImg.src = shinyUrl;
+        }
+
+        function renderPersonList() {
+            const listContainer = document.getElementById('personList');
+            listContainer.innerHTML = PEOPLE_DATA.map(person => `
+                <div class="person-item">
+                    <input type="checkbox" 
+                           id="person-${person.name}" 
+                           ${selectedPeople.find(p => p.name === person.name) ? 'checked' : ''}
+                           onchange="togglePerson('${person.name}')">
+                    <label for="person-${person.name}" style="cursor: pointer; flex: 1;">
+                        ${person.name}
+                    </label>
+                </div>
+            `).join('');
+        }
+
+        function togglePerson(name) {
+            const person = PEOPLE_DATA.find(p => p.name === name);
+            const index = selectedPeople.findIndex(p => p.name === name);
+            
+            if (index === -1) {
+                selectedPeople.push(person);
+            } else {
+                selectedPeople.splice(index, 1);
+            }
+            
+            saveSelectedToLocalStorage();
+            renderCards();
+        }
+
+        function createSparkles(card) {
+            const sparkleCount = 20;
+            for (let i = 0; i < sparkleCount; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle';
+                sparkle.style.left = Math.random() * 100 + '%';
+                sparkle.style.top = Math.random() * 100 + '%';
+                sparkle.style.animationDelay = Math.random() * 1 + 's';
+                card.appendChild(sparkle);
+            }
+        }
+
+        function renderCards() {
+            const container = document.getElementById('cardsContainer');
+            container.innerHTML = selectedPeople.map(person => `
+                <div class="pokemon-card" data-name="${person.name}">
+                    <div class="card-header">
+                        <div class="card-name">${person.name}</div>
+                        <div class="card-hp">${person.hp}HP</div>
+                    </div>
+                    <div class="card-image">
+                        <img src="${getAvatarUrl(person.name)}" alt="${person.name}">
+                    </div>
+                    <div class="card-ability">
+                        <div class="ability-name">${person.ability}</div>
+                        <div class="ability-desc">${person.desc}</div>
+                    </div>
+                    <div class="card-stats">
+                        <span class="stat-badge">⚡ ${person.bonus}</span>
+                    </div>
+                    <div class="card-footer">
+                        <div>Blocker: ${person.blocker}</div>
+                        <div>Escape: ${person.escape}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function pickShinyPokemon() {
+            if (isRolling || selectedPeople.length === 0) return;
+            
+            isRolling = true;
+            document.getElementById('pickButton').disabled = true;
+
+            // Reset previous shiny
+            if (currentShiny) {
+                const prevCard = document.querySelector(`[data-name="${currentShiny}"]`);
+                if (prevCard) {
+                    prevCard.classList.remove('shiny');
+                    const sparkles = prevCard.querySelectorAll('.sparkle');
+                    sparkles.forEach(s => s.remove());
+                    // Reset to normal avatar
+                    const prevImg = prevCard.querySelector('.card-image img');
+                    prevImg.src = getAvatarUrl(currentShiny);
+                }
+            }
+            currentShiny = null;
+
+            // Rolling animation
+            const cards = document.querySelectorAll('.pokemon-card');
+            const rollDuration = 3000;
+            const rollInterval = 150;
+            const rollSteps = rollDuration / rollInterval;
+            
+            for (let i = 0; i < rollSteps; i++) {
+                const randomCard = cards[Math.floor(Math.random() * cards.length)];
+                cards.forEach(c => c.classList.remove('rolling'));
+                randomCard.classList.add('rolling');
+                await new Promise(resolve => setTimeout(resolve, rollInterval));
+            }
+
+            // Pick winner
+            const winner = selectedPeople[Math.floor(Math.random() * selectedPeople.length)];
+            const winnerCard = document.querySelector(`[data-name="${winner.name}"]`);
+            
+            cards.forEach(c => c.classList.remove('rolling'));
+            winnerCard.classList.add('shiny');
+            createSparkles(winnerCard);
+            tryLoadShinyAvatar(winnerCard, winner.name);
+            currentShiny = winner.name;
+
+            // Scroll to winner
+            winnerCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            isRolling = false;
+            document.getElementById('pickButton').disabled = false;
+        }
+
+        // Initialize
+        createPokemonBackground();
+        loadSelectedFromLocalStorage();
+        renderPersonList();
+        renderCards();
+        document.getElementById('pickButton').addEventListener('click', pickShinyPokemon);
+
+        // Make functions global
+        window.togglePerson = togglePerson;
+    </script>
 </body>
 </html>
