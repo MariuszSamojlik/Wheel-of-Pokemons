@@ -405,11 +405,15 @@
             return array[Math.floor(Math.random() * array.length)];
         }
 
-        function generateCardData(name, baseHp) {
+        function getRandomHP() {
+            return Math.floor(Math.random() * (150 - 50 + 1)) + 50; // Random HP between 50-150
+        }
+
+        function generateCardData(name) {
             const ability = getRandomItem(ABILITIES);
             return {
                 name: name,
-                hp: baseHp,
+                hp: getRandomHP(),
                 ability: ability.name,
                 desc: ability.desc,
                 bonus: getRandomItem(BONUSES),
@@ -419,17 +423,19 @@
         }
 
         const PEOPLE_DATA = [
-            generateCardData('Ankit', 145),
-            generateCardData('Danny', 148),
-            generateCardData('Marian', 67),
-            generateCardData('Mariusz', 109),
-            generateCardData('Minesh', 80),
-            generateCardData('Muhammad', 65),
-            generateCardData('Paul', 121),
-            generateCardData('Deepthi', 51),
-            generateCardData('Rares', 98),
-            generateCardData('Yasmin', 136),
-            generateCardData('Francois', 131)
+            generateCardData('Ankit'),
+            generateCardData('Danny'),
+            generateCardData('Marian'),
+            generateCardData('Mariusz'),
+            generateCardData('Minesh'),
+            generateCardData('Muhammad'),
+            generateCardData('Paul'),
+            generateCardData('Deepthi'),
+            generateCardData('Rares'),
+            generateCardData('Yasmin'),
+            generateCardData('Francois'),
+            generateCardData('Eric'),
+            generateCardData('Alex')
         ];
 
         let selectedPeople = [];
