@@ -456,7 +456,7 @@
         }
 
         function createPokemonBackground() {
-            const pokemonIds = [1, 4, 7, 25, 39, 54, 104, 133, 143, 147, 151, 172, 175]; // Popular pokemon IDs
+            const pokemonIds = [1, 4, 7, 25, 39, 54, 104, 133, 143, 147, 151, 172, 175, 183, 196, 197, 280, 352, 359, 448]; // Popular pokemon IDs
             const positions = [
                 { top: '5%', left: '5%', size: 120 },
                 { top: '15%', right: '8%', size: 100 },
@@ -465,7 +465,16 @@
                 { top: '75%', left: '10%', size: 90 },
                 { top: '25%', left: '50%', size: 70 },
                 { top: '85%', right: '15%', size: 95 },
-                { top: '50%', left: '92%', size: 85 }
+                { top: '50%', left: '92%', size: 85 },
+                // Nowe pozycje
+                { top: '10%', left: '25%', size: 75 },
+                { top: '30%', right: '20%', size: 105 },
+                { top: '55%', left: '15%', size: 65 },
+                { top: '70%', right: '30%', size: 85 },
+                { top: '90%', left: '40%', size: 95 },
+                { top: '20%', right: '40%', size: 70 },
+                { top: '45%', left: '60%', size: 80 },
+                { top: '80%', right: '50%', size: 90 }
             ];
 
             positions.forEach((pos, index) => {
@@ -488,10 +497,11 @@
         }
 
         function getAvatarUrl(name, isShiny = false) {
+            const lowercaseName = name.toLowerCase();
             if (isShiny) {
-                return `./avatars/${name}-shiny.jpg`;
+                return `./${lowercaseName}_shiny.png`;
             }
-            return `./avatars/${name}.jpg`;
+            return `./${lowercaseName}.png`;
         }
 
         function tryLoadShinyAvatar(card, name) {
