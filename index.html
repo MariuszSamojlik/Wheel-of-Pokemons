@@ -309,33 +309,126 @@
             padding-top: 6px;
         }
 
-        .pick-button-container {
-            text-align: center;
-            margin-top: 20px;
-            padding-bottom: 30px;
+        /* ── Action panel (right sticky column) ───────────────────────────── */
+        .action-panel {
+            width: 190px;
+            flex-shrink: 0;
+            position: sticky;
+            top: 80px;
+            align-self: flex-start;
+            margin-left: 16px;
+        }
+
+        .action-card {
+            background: white;
+            border-radius: 15px;
+            padding: 22px 16px 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 18px;
+            margin-top: 72px;
+        }
+
+        /* CSS Pokéball */
+        .pokeball-deco {
+            width: 96px;
+            height: 96px;
+            border-radius: 50%;
+            background: linear-gradient(to bottom,
+                #e74c3c 0% 47%,
+                #1d1d1d 47% 53%,
+                #f0f0f0 53% 100%);
+            border: 4px solid #1d1d1d;
+            position: relative;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+            cursor: pointer;
+            animation: pokeballIdle 4s ease-in-out infinite;
+            transition: box-shadow 0.3s;
+        }
+
+        .pokeball-deco::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 24px;
+            height: 24px;
+            transform: translate(-50%, -50%);
+            background: white;
+            border: 4px solid #1d1d1d;
+            border-radius: 50%;
+            z-index: 2;
+            box-shadow: 0 0 0 3px #f0f0f0;
+        }
+
+        .pokeball-deco::after {
+            content: '';
+            position: absolute;
+            left: -4px;
+            right: -4px;
+            top: 50%;
+            height: 6px;
+            transform: translateY(-50%);
+            background: #1d1d1d;
+        }
+
+        @keyframes pokeballIdle {
+            0%, 100% { transform: rotate(0deg); }
+            20%       { transform: rotate(-10deg); }
+            40%       { transform: rotate(10deg); }
+            60%       { transform: rotate(-6deg); }
+            80%       { transform: rotate(6deg); }
+        }
+
+        .pokeball-deco.throwing {
+            animation: pokeballSpin 0.5s linear infinite;
+            box-shadow: 0 0 30px rgba(231, 76, 60, 0.6),
+                        0 0 60px rgba(231, 76, 60, 0.3);
+        }
+
+        @keyframes pokeballSpin {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(360deg); }
         }
 
         .pick-button {
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             color: white;
             border: none;
-            padding: 16px 40px;
-            font-size: 20px;
+            padding: 12px 10px;
+            font-size: 15px;
             font-weight: bold;
             border-radius: 50px;
             cursor: pointer;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.25);
             transition: all 0.3s;
+            width: 100%;
+            text-align: center;
         }
 
         .pick-button:hover:not(:disabled) {
             transform: scale(1.05);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+            box-shadow: 0 10px 28px rgba(0,0,0,0.35);
         }
 
         .pick-button:disabled {
             opacity: 0.6;
             cursor: not-allowed;
+        }
+
+        .challenger-count {
+            font-size: 12px;
+            font-weight: 700;
+            color: #888;
+            text-align: center;
+            letter-spacing: 0.02em;
+        }
+
+        .challenger-count strong {
+            color: #764ba2;
+            font-size: 15px;
         }
 
         /* Shiny effects */
@@ -667,10 +760,13 @@
         <div class="main-content">
             <h1>Wheel of Pokemons</h1>
             <div class="cards-container" id="cardsContainer"></div>
-            <div class="pick-button-container">
-                <button class="pick-button" id="pickButton">
-                    Throw Pokéball!
-                </button>
+        </div>
+
+        <div class="action-panel">
+            <div class="action-card">
+                <div class="pokeball-deco" id="pokeballDeco"></div>
+                <button class="pick-button" id="pickButton">Throw Pokéball!</button>
+                <div class="challenger-count" id="challengerCount"></div>
             </div>
         </div>
     </div>
@@ -1248,6 +1344,7 @@
             
             saveSelectedToLocalStorage();
             renderCards();
+            renderChallengerCount();
         }
 
         function createSparkles(card) {
@@ -1288,11 +1385,20 @@
             `).join('');
         }
 
+        function renderChallengerCount() {
+            const el = document.getElementById('challengerCount');
+            const n = selectedPeople.length;
+            el.innerHTML = n === 0
+                ? 'No challengers selected'
+                : `<strong>${n}</strong> challenger${n === 1 ? '' : 's'} ready`;
+        }
+
         async function pickShinyPokemon() {
             if (isRolling || selectedPeople.length === 0) return;
-            
+
             isRolling = true;
             document.getElementById('pickButton').disabled = true;
+            document.getElementById('pokeballDeco').classList.add('throwing');
 
             // Reset previous shiny
             if (currentShiny) {
@@ -1336,6 +1442,7 @@
 
             isRolling = false;
             document.getElementById('pickButton').disabled = false;
+            document.getElementById('pokeballDeco').classList.remove('throwing');
         }
 
         async function init() {
@@ -1360,6 +1467,7 @@
             renderGroupFilters();
             renderPersonList();
             renderCards();
+            renderChallengerCount();
 
             document.getElementById('pickButton').addEventListener('click', pickShinyPokemon);
             document.getElementById('winnerClose').addEventListener('click', closeWinnerReveal);
@@ -1391,6 +1499,7 @@
                 saveSelectedToLocalStorage();
                 renderPersonList();
                 renderCards();
+                renderChallengerCount();
             });
 
             document.getElementById('deselectAllVisible').addEventListener('click', () => {
@@ -1399,6 +1508,7 @@
                 saveSelectedToLocalStorage();
                 renderPersonList();
                 renderCards();
+                renderChallengerCount();
             });
 
             window.togglePerson = togglePerson;
