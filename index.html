@@ -307,6 +307,247 @@
                 transform: scale(1.1) rotate(5deg);
             }
         }
+
+
+        .winner-overlay {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at center, rgba(42, 16, 74, 0.55) 0%, rgba(8, 6, 22, 0.9) 65%, rgba(0, 0, 0, 0.96) 100%);
+            backdrop-filter: blur(8px);
+            z-index: 50;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.35s ease;
+            overflow: hidden;
+        }
+
+        .winner-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .winner-stage {
+            position: relative;
+            width: min(760px, calc(100vw - 32px));
+            min-height: 440px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pokeball-throw {
+            position: absolute;
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            background: linear-gradient(to bottom, #ff4d4d 0 48%, #1d1d1d 48% 52%, #ffffff 52% 100%);
+            border: 6px solid #111;
+            box-shadow: 0 18px 40px rgba(0,0,0,0.45);
+            left: -160px;
+            top: 55%;
+            transform: translateY(-50%);
+            opacity: 0;
+        }
+
+        .pokeball-throw::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 28px;
+            height: 28px;
+            transform: translate(-50%, -50%);
+            background: white;
+            border: 5px solid #111;
+            border-radius: 50%;
+            z-index: 2;
+        }
+
+        .pokeball-throw::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 50%;
+            height: 8px;
+            transform: translateY(-50%);
+            background: #111;
+        }
+
+        .winner-overlay.throwing .pokeball-throw {
+            opacity: 1;
+            animation: pokeballThrow 1s cubic-bezier(.22,.88,.27,1.02) forwards;
+        }
+
+        @keyframes pokeballThrow {
+            0% {
+                left: -160px;
+                top: 72%;
+                transform: translateY(-50%) scale(0.7) rotate(0deg);
+            }
+            45% {
+                left: 34%;
+                top: 22%;
+                transform: translateY(-50%) scale(0.95) rotate(450deg);
+            }
+            72% {
+                left: 54%;
+                top: 58%;
+                transform: translateY(-50%) scale(1.06) rotate(780deg);
+            }
+            100% {
+                left: calc(50% - 55px);
+                top: 50%;
+                transform: translateY(-50%) scale(1) rotate(900deg);
+            }
+        }
+
+        .impact-burst {
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.9);
+            box-shadow: 0 0 0 0 rgba(255,255,255,0.9);
+            opacity: 0;
+            transform: scale(0.2);
+        }
+
+        .winner-overlay.reveal .impact-burst {
+            animation: burstFlash 0.6s ease-out forwards;
+        }
+
+        @keyframes burstFlash {
+            0% { opacity: 1; transform: scale(0.2); box-shadow: 0 0 0 0 rgba(255,255,255,0.95); }
+            100% { opacity: 0; transform: scale(14); box-shadow: 0 0 0 48px rgba(255,255,255,0); }
+        }
+
+        .winner-card {
+            position: relative;
+            z-index: 2;
+            width: min(560px, 92vw);
+            background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,244,255,0.95));
+            border-radius: 28px;
+            padding: 18px 18px 20px;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.45);
+            text-align: center;
+            transform: scale(0.84);
+            opacity: 0;
+            transition: transform 0.35s ease, opacity 0.35s ease;
+        }
+
+        .winner-overlay.reveal .winner-card {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        .winner-media {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            background: linear-gradient(135deg, #111827, #2a2f45);
+            border-radius: 22px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 5px solid #f2c94c;
+            box-shadow: inset 0 0 40px rgba(255,255,255,0.08);
+            margin-bottom: 16px;
+        }
+
+        .winner-media img,
+        .winner-media video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .winner-kicker {
+            font-size: 14px;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: #e74c3c;
+            margin-bottom: 8px;
+        }
+
+        .winner-name {
+            font-size: clamp(34px, 6vw, 58px);
+            font-weight: 900;
+            color: #222;
+            margin-bottom: 8px;
+            text-shadow: 0 4px 18px rgba(255,255,255,0.35);
+        }
+
+        .winner-subtitle {
+            font-size: 18px;
+            color: #4b5563;
+            margin-bottom: 16px;
+        }
+
+        .winner-close {
+            border: none;
+            background: linear-gradient(135deg, #ef4444, #ec4899);
+            color: white;
+            padding: 12px 22px;
+            border-radius: 999px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 12px 25px rgba(236,72,153,0.28);
+        }
+
+        .winner-close:hover {
+            transform: translateY(-1px);
+        }
+
+        .pokemon-confetti {
+            position: absolute;
+            inset: 0;
+            z-index: 4;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .confetti-piece {
+            position: absolute;
+            top: -14vh;
+            opacity: 0;
+            will-change: transform, opacity;
+            filter: drop-shadow(0 10px 16px rgba(0,0,0,0.28));
+        }
+
+        .confetti-piece img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            image-rendering: pixelated;
+        }
+
+        .winner-overlay.reveal .confetti-piece {
+            opacity: 1;
+            animation: confettiFall var(--fall-duration, 4.4s) linear forwards;
+            animation-delay: var(--fall-delay, 0s);
+        }
+
+        @keyframes confettiFall {
+            0% {
+                transform: translate3d(0, -16vh, 0) rotate(0deg) scale(var(--confetti-scale, 1));
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            100% {
+                transform: translate3d(var(--drift-x, 0px), 120vh, 0) rotate(var(--spin, 540deg)) scale(var(--confetti-scale, 1));
+                opacity: 1;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -321,8 +562,25 @@
             <div class="cards-container" id="cardsContainer"></div>
             <div class="pick-button-container">
                 <button class="pick-button" id="pickButton">
-                    Pick a shiny pokemon to run the standup
+                    Throw Pokéball to pick standup
                 </button>
+            </div>
+        </div>
+    </div>
+
+
+
+    <div class="winner-overlay" id="winnerOverlay" aria-hidden="true">
+        <div class="winner-stage">
+            <div class="pokemon-confetti" id="pokemonConfetti"></div>
+            <div class="impact-burst"></div>
+            <div class="pokeball-throw"></div>
+            <div class="winner-card">
+                <div class="winner-media" id="winnerMedia"></div>
+                <div class="winner-kicker">Standup Challenger Selected</div>
+                <div class="winner-name" id="winnerName"></div>
+                <div class="winner-subtitle">Prepare for battle. You’re running standup.</div>
+                <button class="winner-close" id="winnerClose">Close reveal</button>
             </div>
         </div>
     </div>
@@ -461,6 +719,41 @@
             }
         }
 
+        const CONFETTI_POKEMON_IDS = [1, 4, 7, 25, 39, 52, 54, 58, 79, 94, 104, 129, 133, 143, 147, 151, 172, 183, 196, 197, 280, 359, 448];
+
+        function getPokemonSpriteUrl(id) {
+            return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
+        }
+
+        function renderPokemonConfetti() {
+            const confettiContainer = document.getElementById('pokemonConfetti');
+            if (!confettiContainer) return;
+
+            confettiContainer.innerHTML = '';
+            const count = 20;
+
+            for (let i = 0; i < count; i++) {
+                const piece = document.createElement('div');
+                piece.className = 'confetti-piece';
+                piece.style.left = `${Math.random() * 92}%`;
+                piece.style.width = `${34 + Math.random() * 28}px`;
+                piece.style.height = `${34 + Math.random() * 28}px`;
+                piece.style.setProperty('--fall-delay', `${(Math.random() * 0.9).toFixed(2)}s`);
+                piece.style.setProperty('--fall-duration', `${(3.6 + Math.random() * 2.2).toFixed(2)}s`);
+                piece.style.setProperty('--drift-x', `${Math.round((Math.random() - 0.5) * 180)}px`);
+                piece.style.setProperty('--spin', `${Math.round((Math.random() > 0.5 ? 1 : -1) * (360 + Math.random() * 540))}deg`);
+                piece.style.setProperty('--confetti-scale', `${(0.85 + Math.random() * 0.9).toFixed(2)}`);
+
+                const img = document.createElement('img');
+                const pokemonId = CONFETTI_POKEMON_IDS[Math.floor(Math.random() * CONFETTI_POKEMON_IDS.length)];
+                img.src = getPokemonSpriteUrl(pokemonId);
+                img.alt = '';
+
+                piece.appendChild(img);
+                confettiContainer.appendChild(piece);
+            }
+        }
+
         function createPokemonBackground() {
             const pokemonIds = [1, 4, 7, 25, 39, 54, 104, 133, 143, 147, 151, 172, 175, 183, 196, 197, 280, 352, 359, 448]; // Popular pokemon IDs
             const positions = [
@@ -494,7 +787,7 @@
                 
                 const randomPokemon = pokemonIds[Math.floor(Math.random() * pokemonIds.length)];
                 const img = document.createElement('img');
-                img.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${randomPokemon}.png`;
+                img.src = getPokemonSpriteUrl(randomPokemon);
                 img.alt = '';
                 
                 div.appendChild(img);
@@ -502,29 +795,103 @@
             });
         }
 
-        function getAvatarUrl(name, isShiny = false) {
+        function getAvatarUrl(name) {
             const lowercaseName = name.toLowerCase();
-            if (isShiny) {
-                return `./${lowercaseName}_shiny.png`;
-            }
             return `./${lowercaseName}.png`;
         }
 
-        function tryLoadShinyAvatar(card, name) {
-            const img = card.querySelector('.card-image img');
-            const shinyUrl = getAvatarUrl(name, true);
-            
-            // Try to load shiny version
-            const testImg = new Image();
-            testImg.onload = function() {
-                // Shiny version exists, use it
-                img.src = shinyUrl;
-            };
-            testImg.onerror = function() {
-                // Shiny version doesn't exist, keep normal avatar
-                // Do nothing, img.src stays as normal
-            };
-            testImg.src = shinyUrl;
+        function getPickedMediaCandidates(name) {
+            const lowercaseName = name.toLowerCase();
+            return [
+                { type: 'image', src: `./${lowercaseName}_picked.gif` },
+                { type: 'video', src: `./${lowercaseName}_picked.mp4` },
+                { type: 'video', src: `./${lowercaseName}_picked.webm` },
+                { type: 'image', src: getAvatarUrl(name) }
+            ];
+        }
+
+        function canLoadMedia(candidate) {
+            return new Promise(resolve => {
+                if (candidate.type === 'image') {
+                    const img = new Image();
+                    img.onload = () => resolve(true);
+                    img.onerror = () => resolve(false);
+                    img.src = candidate.src;
+                    return;
+                }
+
+                const video = document.createElement('video');
+                video.preload = 'metadata';
+                const done = (result) => {
+                    video.removeAttribute('src');
+                    video.load();
+                    resolve(result);
+                };
+                video.onloadeddata = () => done(true);
+                video.onerror = () => done(false);
+                video.src = candidate.src;
+            });
+        }
+
+        async function getPickedMedia(name) {
+            const candidates = getPickedMediaCandidates(name);
+            for (const candidate of candidates) {
+                if (await canLoadMedia(candidate)) {
+                    return candidate;
+                }
+            }
+            return { type: 'image', src: getAvatarUrl(name) };
+        }
+
+        async function showWinnerReveal(name) {
+            const overlay = document.getElementById('winnerOverlay');
+            const mediaContainer = document.getElementById('winnerMedia');
+            const winnerName = document.getElementById('winnerName');
+
+            winnerName.textContent = name;
+            mediaContainer.innerHTML = '';
+            overlay.classList.remove('reveal');
+            overlay.classList.add('active', 'throwing');
+            overlay.setAttribute('aria-hidden', 'false');
+
+            const media = await getPickedMedia(name);
+            const mediaEl = document.createElement(media.type === 'video' ? 'video' : 'img');
+            mediaEl.src = media.src;
+            mediaEl.alt = `${name} selected`;
+
+            if (media.type === 'video') {
+                mediaEl.autoplay = true;
+                mediaEl.loop = false;
+                mediaEl.muted = true;
+                mediaEl.playsInline = true;
+                mediaEl.addEventListener('ended', () => {
+                    mediaEl.pause();
+                    const safeLastFrame = Math.max((mediaEl.duration || 0) - 0.04, 0);
+                    if (Number.isFinite(safeLastFrame)) {
+                        try {
+                            mediaEl.currentTime = safeLastFrame;
+                        } catch (error) {
+                            // ignore seek edge cases and keep the ended frame visible
+                        }
+                    }
+                }, { once: true });
+            }
+
+            mediaContainer.appendChild(mediaEl);
+            renderPokemonConfetti();
+
+            window.clearTimeout(window.__winnerRevealTimer);
+            window.__winnerRevealTimer = window.setTimeout(() => {
+                overlay.classList.add('reveal');
+            }, 950);
+        }
+
+        function closeWinnerReveal() {
+            const overlay = document.getElementById('winnerOverlay');
+            const mediaContainer = document.getElementById('winnerMedia');
+            overlay.classList.remove('active', 'throwing', 'reveal');
+            overlay.setAttribute('aria-hidden', 'true');
+            mediaContainer.innerHTML = '';
         }
 
         function renderPersonList() {
@@ -634,11 +1001,11 @@
             cards.forEach(c => c.classList.remove('rolling'));
             winnerCard.classList.add('shiny');
             createSparkles(winnerCard);
-            tryLoadShinyAvatar(winnerCard, winner.name);
             currentShiny = winner.name;
 
             // Scroll to winner
             winnerCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            showWinnerReveal(winner.name);
 
             isRolling = false;
             document.getElementById('pickButton').disabled = false;
@@ -650,6 +1017,10 @@
         renderPersonList();
         renderCards();
         document.getElementById('pickButton').addEventListener('click', pickShinyPokemon);
+        document.getElementById('winnerClose').addEventListener('click', closeWinnerReveal);
+        document.getElementById('winnerOverlay').addEventListener('click', (event) => {
+            if (event.target.id === 'winnerOverlay') closeWinnerReveal();
+        });
 
         // Make functions global
         window.togglePerson = togglePerson;
