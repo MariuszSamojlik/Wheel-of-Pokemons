@@ -12,7 +12,11 @@
     "Yasmin",
     "Francois",
     "Eric",
-    "Alex"
+    "Alex",
+    "Tanu",
+    "Tony",
+    "Sachin",
+    "Sam"
   ],
   "groups": {
     "ContentApp": [
@@ -33,9 +37,10 @@
       "Mariusz"
     ],
     "Centris": [
-      "Francois",
-      "Eric",
-      "Alex"
+      "Sam",
+      "Tanu",
+      "Tony",
+      "Sachin"
     ]
   }
 }
