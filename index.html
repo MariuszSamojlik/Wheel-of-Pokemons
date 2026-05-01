@@ -80,6 +80,83 @@
             cursor: pointer;
         }
 
+        .group-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+
+        .group-pill {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            background: #e8e8e8;
+            color: #555;
+            transition: all 0.2s;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        .group-pill:hover {
+            background: #d0d0d0;
+        }
+
+        .group-pill.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1.5px solid #ddd;
+            border-radius: 8px;
+            font-size: 13px;
+            outline: none;
+            margin-bottom: 8px;
+            box-sizing: border-box;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .search-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+        }
+
+        .bulk-actions {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+
+        .bulk-btn {
+            flex: 1;
+            padding: 5px 4px;
+            font-size: 11px;
+            font-weight: 600;
+            border: 1.5px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            background: white;
+            color: #555;
+            transition: all 0.2s;
+        }
+
+        .bulk-btn:hover {
+            background: #f0f0f0;
+            border-color: #aaa;
+        }
+
+        .no-results {
+            color: #aaa;
+            font-size: 13px;
+            padding: 8px 0;
+            text-align: center;
+        }
+
         .main-content {
             flex: 1;
         }
@@ -554,6 +631,18 @@
     <div class="container">
         <div class="sidebar">
             <h2>👥 Team Members</h2>
+            <div class="group-filters" id="groupFilters">
+                <span class="group-pill active" data-group="All">All</span>
+                <span class="group-pill" data-group="ContentApp">ContentApp</span>
+                <span class="group-pill" data-group="Headlines">Headlines</span>
+                <span class="group-pill" data-group="Quicksilver">Quicksilver</span>
+                <span class="group-pill" data-group="Centris">Centris</span>
+            </div>
+            <input type="text" class="search-input" id="personSearch" placeholder="🔍 Search...">
+            <div class="bulk-actions">
+                <button class="bulk-btn" id="selectAllVisible">Select all</button>
+                <button class="bulk-btn" id="deselectAllVisible">Deselect all</button>
+            </div>
             <div id="personList"></div>
         </div>
 
@@ -586,6 +675,16 @@
     </div>
 
     <script>
+        // ── Team groups configuration ──────────────────────────────────────────
+        // Each person can appear in multiple groups. Edit this to match your teams.
+        const TEAM_GROUPS = {
+            'ContentApp':  ['Ankit', 'Danny', 'Marian', 'Mariusz'],
+            'Headlines':   ['Minesh', 'Muhammad', 'Paul'],
+            'Quicksilver': ['Deepthi', 'Rares', 'Yasmin'],
+            'Centris':     ['Francois', 'Eric', 'Alex'],
+        };
+        // ──────────────────────────────────────────────────────────────────────
+
         const ABILITIES = [
             { name: 'Regex Tamer', desc: 'Crafts regexes that only aliens understand.' },
             { name: 'Android Emulator Summoner', desc: 'Boots emulator in under 2 minutes. It\'s dark magic.' },
@@ -699,6 +798,8 @@
         let selectedPeople = [];
         let isRolling = false;
         let currentShiny = null;
+        let activeGroup = 'All';
+        let searchQuery = '';
 
         function saveSelectedToLocalStorage() {
             const selectedNames = selectedPeople.map(p => p.name);
@@ -717,6 +818,30 @@
             } else {
                 selectedPeople = [...PEOPLE_DATA];
             }
+        }
+
+        function saveGroupToLocalStorage() {
+            localStorage.setItem('wheelOfPokemons_group', activeGroup);
+        }
+
+        function loadGroupFromLocalStorage() {
+            const saved = localStorage.getItem('wheelOfPokemons_group');
+            if (saved && (saved === 'All' || TEAM_GROUPS[saved] !== undefined)) {
+                activeGroup = saved;
+            }
+        }
+
+        function getVisiblePeople() {
+            let people = PEOPLE_DATA;
+            if (activeGroup !== 'All') {
+                const members = TEAM_GROUPS[activeGroup] || [];
+                people = people.filter(p => members.includes(p.name));
+            }
+            if (searchQuery) {
+                const q = searchQuery.toLowerCase();
+                people = people.filter(p => p.name.toLowerCase().includes(q));
+            }
+            return people;
         }
 
         const CONFETTI_POKEMON_IDS = [1, 4, 7, 25, 39, 52, 54, 58, 79, 94, 104, 129, 133, 143, 147, 151, 172, 183, 196, 197, 280, 359, 448];
@@ -894,12 +1019,25 @@
             mediaContainer.innerHTML = '';
         }
 
+        function renderGroupFilters() {
+            document.querySelectorAll('.group-pill').forEach(pill => {
+                pill.classList.toggle('active', pill.dataset.group === activeGroup);
+            });
+        }
+
         function renderPersonList() {
             const listContainer = document.getElementById('personList');
-            listContainer.innerHTML = PEOPLE_DATA.map(person => `
+            const visible = getVisiblePeople();
+
+            if (visible.length === 0) {
+                listContainer.innerHTML = '<div class="no-results">No people found</div>';
+                return;
+            }
+
+            listContainer.innerHTML = visible.map(person => `
                 <div class="person-item">
-                    <input type="checkbox" 
-                           id="person-${person.name}" 
+                    <input type="checkbox"
+                           id="person-${person.name}"
                            ${selectedPeople.find(p => p.name === person.name) ? 'checked' : ''}
                            onchange="togglePerson('${person.name}')">
                     <label for="person-${person.name}" style="cursor: pointer; flex: 1;">
@@ -1014,12 +1152,48 @@
         // Initialize
         createPokemonBackground();
         loadSelectedFromLocalStorage();
+        loadGroupFromLocalStorage();
+        renderGroupFilters();
         renderPersonList();
         renderCards();
         document.getElementById('pickButton').addEventListener('click', pickShinyPokemon);
         document.getElementById('winnerClose').addEventListener('click', closeWinnerReveal);
         document.getElementById('winnerOverlay').addEventListener('click', (event) => {
             if (event.target.id === 'winnerOverlay') closeWinnerReveal();
+        });
+
+        document.getElementById('groupFilters').addEventListener('click', (e) => {
+            const pill = e.target.closest('.group-pill');
+            if (!pill) return;
+            activeGroup = pill.dataset.group;
+            saveGroupToLocalStorage();
+            renderGroupFilters();
+            renderPersonList();
+        });
+
+        document.getElementById('personSearch').addEventListener('input', (e) => {
+            searchQuery = e.target.value.trim();
+            renderPersonList();
+        });
+
+        document.getElementById('selectAllVisible').addEventListener('click', () => {
+            const visible = getVisiblePeople();
+            visible.forEach(person => {
+                if (!selectedPeople.find(p => p.name === person.name)) {
+                    selectedPeople.push(person);
+                }
+            });
+            saveSelectedToLocalStorage();
+            renderPersonList();
+            renderCards();
+        });
+
+        document.getElementById('deselectAllVisible').addEventListener('click', () => {
+            const visibleNames = new Set(getVisiblePeople().map(p => p.name));
+            selectedPeople = selectedPeople.filter(p => !visibleNames.has(p.name));
+            saveSelectedToLocalStorage();
+            renderPersonList();
+            renderCards();
         });
 
         // Make functions global
