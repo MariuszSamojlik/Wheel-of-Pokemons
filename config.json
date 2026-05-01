@@ -1,0 +1,9 @@
+{
+  "people": ["Ankit", "Danny", "Marian", "Mariusz", "Minesh", "Muhammad", "Paul", "Deepthi", "Rares", "Yasmin", "Francois", "Eric", "Alex"],
+  "groups": {
+    "ContentApp": ["Ankit", "Danny", "Marian", "Mariusz"],
+    "Headlines": ["Minesh", "Muhammad", "Paul"],
+    "Quicksilver": ["Deepthi", "Rares", "Yasmin"],
+    "Centris": ["Francois", "Eric", "Alex"]
+  }
+}

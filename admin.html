@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel — Wheel of Pokemons</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        /* ── Top bar ─────────────────────────────────────────────────────────── */
+        .topbar {
+            background: rgba(0, 0, 0, 0.25);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .topbar h1 {
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+            flex: 1;
+        }
+
+        .back-btn {
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 6px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            border-radius: 6px;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+
+        .back-btn:hover { background: rgba(255, 255, 255, 0.12); }
+
+        .topbar-auth {
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 13px;
+        }
+
+        .topbar-logout {
+            padding: 5px 10px;
+            font-size: 12px;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .topbar-logout:hover { background: rgba(255, 255, 255, 0.25); }
+
+        /* ── Main layout ─────────────────────────────────────────────────────── */
+        .main {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 24px 20px 100px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px 24px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+        }
+
+        .section-header h2 {
+            font-size: 17px;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        /* ── Buttons ─────────────────────────────────────────────────────────── */
+        .btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.18s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(118, 75, 162, 0.35);
+        }
+
+        .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .btn-secondary:hover { background: #e5e7eb; }
+
+        .btn-danger {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .btn-danger:hover { background: #fecaca; }
+
+        .small-btn {
+            padding: 4px 10px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 6px;
+            cursor: pointer;
+            background: white;
+            color: #374151;
+            transition: all 0.18s;
+        }
+
+        .small-btn:hover { border-color: #764ba2; color: #764ba2; }
+
+        .small-btn.danger { color: #dc2626; }
+        .small-btn.danger:hover { border-color: #dc2626; background: #fee2e2; }
+
+        /* ── Groups grid ─────────────────────────────────────────────────────── */
+        .groups-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 14px;
+        }
+
+        .group-card {
+            border: 1.5px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .group-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .group-card-header h3 {
+            font-size: 15px;
+            font-weight: 700;
+            color: #374151;
+        }
+
+        .group-members {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            min-height: 28px;
+        }
+
+        .member-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            background: #ede9fe;
+            color: #5b21b6;
+            padding: 3px 8px 3px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .member-tag button {
+            background: none;
+            border: none;
+            color: #7c3aed;
+            cursor: pointer;
+            font-size: 15px;
+            line-height: 1;
+            padding: 0 1px;
+        }
+
+        .member-tag button:hover { color: #dc2626; }
+
+        .empty-group {
+            color: #9ca3af;
+            font-size: 12px;
+            font-style: italic;
+        }
+
+        .add-member-row {
+            display: flex;
+            gap: 6px;
+        }
+
+        .add-member-row select {
+            flex: 1;
+            padding: 5px 8px;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 12px;
+            outline: none;
+            cursor: pointer;
+            background: white;
+        }
+
+        .add-member-row select:focus { border-color: #764ba2; }
+
+        .add-member-row .add-btn {
+            padding: 5px 12px;
+            font-size: 12px;
+            font-weight: 700;
+            background: #764ba2;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.18s;
+        }
+
+        .add-member-row .add-btn:hover { background: #667eea; }
+
+        /* ── People table ────────────────────────────────────────────────────── */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 8px 12px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 2px solid #f3f4f6;
+        }
+
+        td {
+            padding: 10px 12px;
+            font-size: 14px;
+            border-bottom: 1px solid #f3f4f6;
+            vertical-align: middle;
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #fafafa; }
+
+        .group-tag {
+            display: inline-block;
+            background: #f0fdf4;
+            color: #166534;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            margin: 2px;
+        }
+
+        .no-group { color: #d1d5db; font-size: 12px; }
+
+        .file-icon { font-size: 16px; }
+
+        .pending-badge {
+            display: inline-block;
+            background: #fef3c7;
+            color: #92400e;
+            padding: 1px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 700;
+            margin-left: 4px;
+            vertical-align: middle;
+        }
+
+        .td-actions { display: flex; gap: 6px; }
+
+        /* ── Save bar ────────────────────────────────────────────────────────── */
+        .save-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #e5e7eb;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+            z-index: 50;
+        }
+
+        .save-status { font-size: 13px; color: #6b7280; }
+        .save-status.info   { color: #2563eb; }
+        .save-status.success { color: #16a34a; }
+        .save-status.error  { color: #dc2626; }
+
+        .save-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 26px;
+            font-size: 14px;
+            font-weight: 700;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(118, 75, 162, 0.4);
+            transition: all 0.2s;
+        }
+
+        .save-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(118, 75, 162, 0.5); }
+        .save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* ── Modals ──────────────────────────────────────────────────────────── */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+        }
+
+        .modal-backdrop.hidden { display: none; }
+
+        .modal {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            width: min(460px, 94vw);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; color: #111; }
+
+        .field { margin-bottom: 14px; }
+        .field label { display: block; font-size: 12px; font-weight: 700; color: #374151; margin-bottom: 5px; }
+        .field .hint { font-size: 11px; color: #9ca3af; margin-top: 3px; }
+
+        .field input[type=file] {
+            width: 100%;
+            padding: 7px;
+            border: 1.5px dashed #d1d5db;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .field input[type=file]:hover { border-color: #764ba2; }
+
+        .field input[type=text] {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .field input[type=text]:focus { border-color: #764ba2; }
+
+        .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+
+        /* ── Auth overlay ────────────────────────────────────────────────────── */
+        .auth-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 300;
+        }
+
+        .auth-overlay.hidden { display: none; }
+
+        .auth-card {
+            background: white;
+            border-radius: 18px;
+            padding: 32px;
+            width: min(420px, 90vw);
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        .auth-card h2 { font-size: 22px; margin-bottom: 8px; }
+
+        .auth-card p {
+            color: #6b7280;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .auth-card p a { color: #764ba2; }
+
+        .auth-card input[type=password] {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 10px;
+            outline: none;
+        }
+
+        .auth-card input[type=password]:focus { border-color: #764ba2; }
+
+        .auth-card .connect-btn {
+            width: 100%;
+            padding: 11px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .auth-card .connect-btn:hover { opacity: 0.9; }
+        .auth-card .connect-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .auth-error {
+            color: #dc2626;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+
+        .auth-error.hidden { display: none; }
+
+        #mainContent.hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <!-- ── Auth overlay ───────────────────────────────────────────────────── -->
+    <div class="auth-overlay" id="authOverlay">
+        <div class="auth-card">
+            <h2>🔑 Admin Access</h2>
+            <p>
+                Enter your GitHub Personal Access Token with <strong>repo</strong> scope.<br>
+                Anyone with write access to this repository can use the admin panel.
+            </p>
+            <input type="password" id="tokenInput" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+            <button class="connect-btn" id="authBtn">Connect</button>
+            <div class="auth-error hidden" id="authError"></div>
+        </div>
+    </div>
+
+    <!-- ── Top bar ────────────────────────────────────────────────────────── -->
+    <div class="topbar">
+        <a href="index.html" class="back-btn">← Back to app</a>
+        <h1>⚙️ Admin Panel — Wheel of Pokemons</h1>
+        <span class="topbar-auth" id="topbarStatus"></span>
+        <button class="topbar-logout" id="logoutBtn">Logout</button>
+    </div>
+
+    <!-- ── Main content ───────────────────────────────────────────────────── -->
+    <div id="mainContent" class="hidden">
+        <div class="main">
+
+            <!-- Groups -->
+            <div class="card">
+                <div class="section-header">
+                    <h2>🏷️ Teams & Groups</h2>
+                    <button class="btn btn-primary" id="addGroupBtn">+ New Group</button>
+                </div>
+                <div class="groups-grid" id="groupsGrid"></div>
+            </div>
+
+            <!-- People -->
+            <div class="card">
+                <div class="section-header">
+                    <h2>👥 People</h2>
+                    <button class="btn btn-primary" id="addPersonBtn">+ Add Person</button>
+                </div>
+                <div id="peopleContainer"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ── Save bar ───────────────────────────────────────────────────────── -->
+    <div class="save-bar">
+        <span class="save-status" id="saveStatus">Connect to GitHub to start editing.</span>
+        <button class="save-btn" id="saveBtn" disabled>💾 Save &amp; Commit to GitHub</button>
+    </div>
+
+    <!-- ── File upload modal ──────────────────────────────────────────────── -->
+    <div class="modal-backdrop hidden" id="uploadModal">
+        <div class="modal">
+            <h3>📁 Upload files for <span id="uploadModalName" style="color:#764ba2"></span></h3>
+            <div class="field">
+                <label>Avatar (normal) — <code>{name}.png</code></label>
+                <input type="file" id="avatarFile" accept="image/png,image/jpeg,image/gif,image/webp">
+            </div>
+            <div class="field">
+                <label>Avatar (shiny / glowing) — <code>{name}_shiny.png</code></label>
+                <input type="file" id="shinyFile" accept="image/png,image/jpeg,image/gif,image/webp">
+            </div>
+            <div class="field">
+                <label>Picked video — <code>{name}_picked.mp4</code></label>
+                <input type="file" id="videoFile" accept="video/mp4,video/webm">
+                <div class="hint">Max ~50 MB. Larger files must be uploaded manually to GitHub.</div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" id="cancelUpload">Cancel</button>
+                <button class="btn btn-primary" id="confirmUpload">Queue for upload</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Add person modal ───────────────────────────────────────────────── -->
+    <div class="modal-backdrop hidden" id="addPersonModal">
+        <div class="modal">
+            <h3>👤 Add New Person</h3>
+            <div class="field">
+                <label>Name</label>
+                <input type="text" id="newPersonName" placeholder="e.g. John">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" id="cancelAddPerson">Cancel</button>
+                <button class="btn btn-primary" id="confirmAddPerson">Add &amp; upload files</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const REPO_OWNER = 'MariuszSamojlik';
+        const REPO_NAME  = 'Wheel-of-Pokemons';
+        const BRANCH     = 'main';
+
+        let token          = sessionStorage.getItem('ghToken') || '';
+        let config         = { people: [], groups: {} };
+        let configSha      = null;
+        let existingFiles  = new Set();
+        let pendingUploads = [];   // { path, content (base64) }
+        let hasChanges     = false;
+
+        // ── GitHub API helpers ────────────────────────────────────────────────
+
+        function ghFetch(path, opts = {}) {
+            return fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/${path}`, {
+                ...opts,
+                headers: {
+                    Authorization: `token ${token}`,
+                    Accept: 'application/vnd.github.v3+json',
+                    'Content-Type': 'application/json',
+                    ...(opts.headers || {}),
+                },
+            });
+        }
+
+        // Safe base64 encode for unicode strings
+        function toBase64(str) {
+            return btoa(unescape(encodeURIComponent(str)));
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload  = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function getFileSha(path) {
+            const res = await ghFetch(`contents/${path}`);
+            if (res.ok) return (await res.json()).sha;
+            return null;
+        }
+
+        // ── Auth ──────────────────────────────────────────────────────────────
+
+        async function tryConnect(tok) {
+            const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}`, {
+                headers: { Authorization: `token ${tok}` },
+            });
+            return res.ok;
+        }
+
+        function logout() {
+            sessionStorage.removeItem('ghToken');
+            token = '';
+            document.getElementById('authOverlay').classList.remove('hidden');
+            document.getElementById('mainContent').classList.add('hidden');
+            document.getElementById('tokenInput').value = '';
+            document.getElementById('authError').classList.add('hidden');
+            setStatus('Connect to GitHub to start editing.', '');
+        }
+
+        // ── Load ──────────────────────────────────────────────────────────────
+
+        async function loadData() {
+            setStatus('Loading data from GitHub…', 'info');
+
+            // config.json
+            const cfgRes = await ghFetch('contents/config.json');
+            if (cfgRes.ok) {
+                const data = await cfgRes.json();
+                configSha = data.sha;
+                config = JSON.parse(atob(data.content.replace(/\s/g, '')));
+            } else {
+                // First run: seed with defaults so the admin can see something
+                config = {
+                    people: ['Ankit','Danny','Marian','Mariusz','Minesh','Muhammad','Paul','Deepthi','Rares','Yasmin','Francois','Eric','Alex'],
+                    groups: {
+                        ContentApp:  ['Ankit','Danny','Marian','Mariusz'],
+                        Headlines:   ['Minesh','Muhammad','Paul'],
+                        Quicksilver: ['Deepthi','Rares','Yasmin'],
+                        Centris:     ['Francois','Eric','Alex'],
+                    },
+                };
+            }
+
+            // Root file listing
+            const filesRes = await ghFetch('contents/');
+            if (filesRes.ok) {
+                const files = await filesRes.json();
+                existingFiles = new Set(files.map(f => f.name.toLowerCase()));
+            }
+
+            render();
+            setStatus('Ready. Make changes and click Save.', 'success');
+        }
+
+        // ── Save ──────────────────────────────────────────────────────────────
+
+        async function saveAll() {
+            document.getElementById('saveBtn').disabled = true;
+
+            try {
+                // 1. Upload queued files
+                for (const upload of pendingUploads) {
+                    setStatus(`Uploading ${upload.path}…`, 'info');
+                    const sha = await getFileSha(upload.path);
+                    const body = {
+                        message: `Upload ${upload.path} via admin panel`,
+                        content: upload.content,
+                        branch: BRANCH,
+                    };
+                    if (sha) body.sha = sha;
+
+                    const res = await ghFetch(`contents/${upload.path}`, {
+                        method: 'PUT',
+                        body: JSON.stringify(body),
+                    });
+                    if (!res.ok) {
+                        const err = await res.json();
+                        throw new Error(`Upload failed for ${upload.path}: ${err.message}`);
+                    }
+                    existingFiles.add(upload.path.toLowerCase());
+                }
+
+                // 2. Commit config.json
+                setStatus('Saving config.json…', 'info');
+                const body = {
+                    message: 'Update config via admin panel',
+                    content: toBase64(JSON.stringify(config, null, 2)),
+                    branch: BRANCH,
+                };
+                if (configSha) body.sha = configSha;
+
+                const res = await ghFetch('contents/config.json', {
+                    method: 'PUT',
+                    body: JSON.stringify(body),
+                });
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(`Config save failed: ${err.message}`);
+                }
+
+                configSha = (await res.json()).content.sha;
+                pendingUploads = [];
+                hasChanges = false;
+                document.getElementById('saveBtn').disabled = true;
+                setStatus('✅ Saved! The site will update in about 1 minute.', 'success');
+                render();
+            } catch (e) {
+                setStatus(`❌ ${e.message}`, 'error');
+                document.getElementById('saveBtn').disabled = false;
+            }
+        }
+
+        // ── Render ────────────────────────────────────────────────────────────
+
+        function render() {
+            renderGroups();
+            renderPeople();
+        }
+
+        function renderGroups() {
+            const grid = document.getElementById('groupsGrid');
+            const names = Object.keys(config.groups);
+
+            if (names.length === 0) {
+                grid.innerHTML = '<p style="color:#9ca3af;font-size:14px;">No groups yet. Click "+ New Group" to create one.</p>';
+                return;
+            }
+
+            grid.innerHTML = names.map(groupName => {
+                const members  = config.groups[groupName];
+                const available = config.people.filter(p => !members.includes(p));
+                const memberTags = members.length === 0
+                    ? '<span class="empty-group">No members yet</span>'
+                    : members.map(name =>
+                        `<span class="member-tag">${name}
+                            <button onclick="removeMember('${groupName}','${name}')" title="Remove">×</button>
+                        </span>`
+                    ).join('');
+
+                return `
+                    <div class="group-card">
+                        <div class="group-card-header">
+                            <h3>${groupName}</h3>
+                            <button class="small-btn danger" onclick="deleteGroup('${groupName}')">🗑 Delete</button>
+                        </div>
+                        <div class="group-members">${memberTags}</div>
+                        <div class="add-member-row">
+                            <select id="sel-${groupName}">
+                                <option value="">Add person…</option>
+                                ${available.map(p => `<option value="${p}">${p}</option>`).join('')}
+                            </select>
+                            <button class="add-btn" onclick="addMember('${groupName}')">Add</button>
+                        </div>
+                    </div>`;
+            }).join('');
+        }
+
+        function renderPeople() {
+            const container = document.getElementById('peopleContainer');
+            if (config.people.length === 0) {
+                container.innerHTML = '<p style="color:#9ca3af;font-size:14px;">No people yet.</p>';
+                return;
+            }
+
+            const rows = config.people.map(name => {
+                const low = name.toLowerCase();
+                const hasPending = (suffix) => pendingUploads.some(u => u.path === `${low}${suffix}`);
+                const hasFile    = (suffix) => existingFiles.has(`${low}${suffix}`);
+
+                const avatar = (hasFile('.png')         || hasPending('.png'))         ? '✅' : '❌';
+                const shiny  = (hasFile('_shiny.png')   || hasPending('_shiny.png'))   ? '✅' : '❌';
+                const video  = (hasFile('_picked.mp4')  || hasPending('_picked.mp4'))  ? '✅' : '❌';
+                const pending = hasPending('.png') || hasPending('_shiny.png') || hasPending('_picked.mp4')
+                    ? '<span class="pending-badge">pending</span>' : '';
+
+                const groups = Object.entries(config.groups)
+                    .filter(([, m]) => m.includes(name))
+                    .map(([g]) => `<span class="group-tag">${g}</span>`)
+                    .join('') || '<span class="no-group">—</span>';
+
+                return `<tr>
+                    <td><strong>${name}</strong>${pending}</td>
+                    <td class="file-icon">${avatar}</td>
+                    <td class="file-icon">${shiny}</td>
+                    <td class="file-icon">${video}</td>
+                    <td>${groups}</td>
+                    <td>
+                        <div class="td-actions">
+                            <button class="small-btn" onclick="openUpload('${name}')">📁 Files</button>
+                            <button class="small-btn danger" onclick="removePerson('${name}')">Remove</button>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
+
+            container.innerHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Avatar</th>
+                            <th>Shiny</th>
+                            <th>Video</th>
+                            <th>Groups</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>`;
+        }
+
+        // ── Group actions ─────────────────────────────────────────────────────
+
+        function addGroup() {
+            const name = prompt('New group name:');
+            if (!name || !name.trim()) return;
+            const trimmed = name.trim();
+            if (config.groups[trimmed]) { alert('Group already exists.'); return; }
+            config.groups[trimmed] = [];
+            markChanged(); render();
+        }
+
+        function deleteGroup(name) {
+            if (!confirm(`Delete group "${name}"?\nPeople will remain in the list.`)) return;
+            delete config.groups[name];
+            markChanged(); render();
+        }
+
+        function addMember(groupName) {
+            const sel = document.getElementById(`sel-${groupName}`);
+            if (!sel.value) return;
+            config.groups[groupName].push(sel.value);
+            markChanged(); render();
+        }
+
+        function removeMember(groupName, name) {
+            config.groups[groupName] = config.groups[groupName].filter(n => n !== name);
+            markChanged(); render();
+        }
+
+        // ── People actions ────────────────────────────────────────────────────
+
+        function openAddPerson() {
+            document.getElementById('newPersonName').value = '';
+            document.getElementById('addPersonModal').classList.remove('hidden');
+            setTimeout(() => document.getElementById('newPersonName').focus(), 50);
+        }
+
+        function closeAddPerson() {
+            document.getElementById('addPersonModal').classList.add('hidden');
+        }
+
+        function confirmAddPerson() {
+            const name = document.getElementById('newPersonName').value.trim();
+            if (!name) return;
+            if (config.people.includes(name)) { alert('Person already exists.'); return; }
+            config.people.push(name);
+            markChanged();
+            closeAddPerson();
+            render();
+            openUpload(name);
+        }
+
+        function removePerson(name) {
+            if (!confirm(`Remove "${name}" from the people list and all groups?`)) return;
+            config.people = config.people.filter(n => n !== name);
+            Object.keys(config.groups).forEach(g => {
+                config.groups[g] = config.groups[g].filter(n => n !== name);
+            });
+            markChanged(); render();
+        }
+
+        // ── File upload modal ─────────────────────────────────────────────────
+
+        function openUpload(name) {
+            document.getElementById('uploadModalName').textContent = name;
+            document.getElementById('uploadModal').dataset.person = name;
+            ['avatarFile', 'shinyFile', 'videoFile'].forEach(id => {
+                document.getElementById(id).value = '';
+            });
+            document.getElementById('uploadModal').classList.remove('hidden');
+        }
+
+        function closeUpload() {
+            document.getElementById('uploadModal').classList.add('hidden');
+        }
+
+        async function confirmUploadFiles() {
+            const name  = document.getElementById('uploadModal').dataset.person;
+            const low   = name.toLowerCase();
+            const files = {
+                avatarFile: `${low}.png`,
+                shinyFile:  `${low}_shiny.png`,
+                videoFile:  `${low}_picked.mp4`,
+            };
+
+            for (const [inputId, path] of Object.entries(files)) {
+                const file = document.getElementById(inputId).files[0];
+                if (!file) continue;
+                if (file.size > 50 * 1024 * 1024) {
+                    alert(`"${file.name}" is larger than 50 MB.\nPlease upload it manually to the GitHub repository.`);
+                    continue;
+                }
+                // Remove any previous pending upload for the same path
+                pendingUploads = pendingUploads.filter(u => u.path !== path);
+                pendingUploads.push({ path, content: await fileToBase64(file) });
+            }
+
+            markChanged();
+            closeUpload();
+            render();
+        }
+
+        // ── Helpers ───────────────────────────────────────────────────────────
+
+        function markChanged() {
+            hasChanges = true;
+            document.getElementById('saveBtn').disabled = false;
+            setStatus('Unsaved changes — click Save to commit to GitHub.', 'info');
+        }
+
+        function setStatus(msg, type) {
+            const el = document.getElementById('saveStatus');
+            el.textContent = msg;
+            el.className = `save-status ${type}`;
+        }
+
+        window.addEventListener('beforeunload', e => {
+            if (hasChanges) { e.preventDefault(); e.returnValue = ''; }
+        });
+
+        // ── Event listeners ───────────────────────────────────────────────────
+
+        document.getElementById('authBtn').addEventListener('click', async () => {
+            const tok = document.getElementById('tokenInput').value.trim();
+            if (!tok) return;
+            const btn = document.getElementById('authBtn');
+            btn.disabled = true;
+            btn.textContent = 'Connecting…';
+
+            const ok = await tryConnect(tok);
+            btn.disabled = false;
+            btn.textContent = 'Connect';
+
+            if (ok) {
+                token = tok;
+                sessionStorage.setItem('ghToken', token);
+                document.getElementById('authOverlay').classList.add('hidden');
+                document.getElementById('mainContent').classList.remove('hidden');
+                document.getElementById('topbarStatus').textContent = '✅ Connected';
+                loadData();
+            } else {
+                const err = document.getElementById('authError');
+                err.textContent = '❌ Invalid token or no access to this repository.';
+                err.classList.remove('hidden');
+            }
+        });
+
+        document.getElementById('tokenInput').addEventListener('keydown', e => {
+            if (e.key === 'Enter') document.getElementById('authBtn').click();
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', logout);
+        document.getElementById('addGroupBtn').addEventListener('click', addGroup);
+        document.getElementById('addPersonBtn').addEventListener('click', openAddPerson);
+        document.getElementById('saveBtn').addEventListener('click', saveAll);
+
+        document.getElementById('cancelUpload').addEventListener('click', closeUpload);
+        document.getElementById('confirmUpload').addEventListener('click', confirmUploadFiles);
+        document.getElementById('uploadModal').addEventListener('click', e => {
+            if (e.target === document.getElementById('uploadModal')) closeUpload();
+        });
+
+        document.getElementById('cancelAddPerson').addEventListener('click', closeAddPerson);
+        document.getElementById('confirmAddPerson').addEventListener('click', confirmAddPerson);
+        document.getElementById('addPersonModal').addEventListener('click', e => {
+            if (e.target === document.getElementById('addPersonModal')) closeAddPerson();
+        });
+
+        // Make inline onclick handlers accessible
+        window.deleteGroup   = deleteGroup;
+        window.addMember     = addMember;
+        window.removeMember  = removeMember;
+        window.openUpload    = openUpload;
+        window.removePerson  = removePerson;
+
+        // ── Auto-connect if token is already in session ───────────────────────
+        if (token) {
+            document.getElementById('authOverlay').classList.add('hidden');
+            document.getElementById('mainContent').classList.remove('hidden');
+            document.getElementById('topbarStatus').textContent = '✅ Connected';
+            loadData();
+        }
+    </script>
+</body>
+</html>
