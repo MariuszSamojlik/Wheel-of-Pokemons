@@ -16,24 +16,27 @@
     "Tanu",
     "Tony",
     "Sachin",
-    "Sam"
+    "Sam",
+    "Hec"
   ],
   "groups": {
     "ContentApp": [
       "Ankit",
       "Danny",
       "Marian",
-      "Mariusz"
-    ],
-    "Headlines": [
+      "Mariusz",
+      "Hec",
       "Minesh",
       "Muhammad",
-      "Paul"
+      "Paul",
+      "Yasmin",
+      "Eric",
+      "Alex"
+    ],
+    "Headlines": [
+      "Hec"
     ],
     "Quicksilver": [
-      "Deepthi",
-      "Rares",
-      "Yasmin",
       "Mariusz"
     ],
     "Centris": [
