@@ -17,7 +17,7 @@ Wheel of Pokemons to **picker osoby prowadzącej standup** z Pokemon-ową stylis
 
 3. **Przycisk "Throw Pokéball to pick standup"** — uruchamia animację losowania:
    - Przez ~3 sekundy karty są losowo podświetlane (efekt `rolling`)
-   - Wylosowana osoba dostaje klasę `shiny` — karta świeci złotym kolorem, avatar zmienia się na wersję `{name}_shiny.png`
+   - Wylosowana osoba dostaje klasę `shiny` — karta świeci złotym kolorem (efekt CSS, nie wymaga osobnego assetu)
    - Pojawia się overlay z animacją rzutu Pokéballem i ujawnieniem wylosowanej osoby
    - W overlayzie odtwarzane jest video `{name}_picked.mp4` (lub `.gif`, `.webm`, a fallback to normalny avatar)
    - Spada "confetti" z losowych sprite'ów Pokemonów (z PokeAPI)
@@ -26,33 +26,12 @@ Wheel of Pokemons to **picker osoby prowadzącej standup** z Pokemon-ową stylis
 
 - `index.html` — cała aplikacja (HTML + CSS + JavaScript, single-file)
 - `card.js` — plik z danymi pomocniczymi (nieużywany bezpośrednio w głównej logice, prawdopodobnie legacy)
-- `{name}.png` — avatar osoby (normalny)
-- `{name}_shiny.png` — avatar osoby (wersja "shiny"/świecąca, pokazywana po wylosowaniu)
+- `{name}.png` — avatar osoby
 - `{name}_picked.mp4` — krótkie video wyświetlane po wylosowaniu danej osoby
 
 ## Osoby w puli
 
-Lista jest **predefiniowana** — to rzeczywiści członkowie zespołu. Docelowo każda osoba powinna mieć zarówno shiny avatar, jak i filmik picked. Brakujące assety wynikają z limitów narzędzi do generowania obrazków i video.
-
-| Osoba     | Avatar (`{name}.png`) | Shiny (`{name}_shiny.png`) | Video (`{name}_picked.mp4`) |
-|-----------|:---------------------:|:--------------------------:|:---------------------------:|
-| Ankit     | ✅                    | ✅                         | ❌                          |
-| Danny     | ✅                    | ✅                         | ❌                          |
-| Marian    | ✅                    | ✅                         | ✅                          |
-| Mariusz   | ✅                    | ✅                         | ✅                          |
-| Minesh    | ✅                    | ✅                         | ✅                          |
-| Muhammad  | ✅                    | ✅                         | ✅                          |
-| Paul      | ✅                    | ✅                         | ✅                          |
-| Deepthi   | ✅                    | ✅                         | ✅                          |
-| Rares     | ✅                    | ✅                         | ✅                          |
-| Yasmin    | ✅                    | ✅                         | ✅                          |
-| Francois  | ✅                    | ✅                         | ✅                          |
-| Eric      | ✅                    | ✅                         | ✅                          |
-| Alex      | ✅                    | ✅                         | ✅                          |
-
-**Brakuje video dla:** Ankit, Danny
-
-Pliki `old_{name}_shiny.png` to poprzednie wersje shiny avatarów (zastąpione nowszymi) — można je ignorować.
+Lista jest **predefiniowana** — to rzeczywiści członkowie zespołu. Docelowo każda osoba powinna mieć zarówno avatar, jak i filmik picked. Brakujące video wynikają z limitów narzędzi do generowania.
 
 ## Kluczowe decyzje techniczne
 

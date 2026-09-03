@@ -525,10 +525,6 @@
                 <input type="file" id="avatarFile" accept="image/png,image/jpeg,image/gif,image/webp">
             </div>
             <div class="field">
-                <label>Avatar (shiny / glowing) — <code>{name}_shiny.png</code></label>
-                <input type="file" id="shinyFile" accept="image/png,image/jpeg,image/gif,image/webp">
-            </div>
-            <div class="field">
                 <label>Picked video — <code>{name}_picked.mp4</code></label>
                 <input type="file" id="videoFile" accept="video/mp4,video/webm">
                 <div class="hint">Max ~50 MB. Larger files must be uploaded manually to GitHub.</div>
@@ -771,9 +767,8 @@
                 const hasFile    = (suffix) => existingFiles.has(`${low}${suffix}`);
 
                 const avatar = (hasFile('.png')         || hasPending('.png'))         ? '✅' : '❌';
-                const shiny  = (hasFile('_shiny.png')   || hasPending('_shiny.png'))   ? '✅' : '❌';
                 const video  = (hasFile('_picked.mp4')  || hasPending('_picked.mp4'))  ? '✅' : '❌';
-                const pending = hasPending('.png') || hasPending('_shiny.png') || hasPending('_picked.mp4')
+                const pending = hasPending('.png') || hasPending('_picked.mp4')
                     ? '<span class="pending-badge">pending</span>' : '';
 
                 const groups = Object.entries(config.groups)
@@ -784,7 +779,6 @@
                 return `<tr>
                     <td><strong>${name}</strong>${pending}</td>
                     <td class="file-icon">${avatar}</td>
-                    <td class="file-icon">${shiny}</td>
                     <td class="file-icon">${video}</td>
                     <td>${groups}</td>
                     <td>
@@ -802,7 +796,6 @@
                         <tr>
                             <th>Name</th>
                             <th>Avatar</th>
-                            <th>Shiny</th>
                             <th>Video</th>
                             <th>Groups</th>
                             <th>Actions</th>
@@ -878,7 +871,7 @@
         function openUpload(name) {
             document.getElementById('uploadModalName').textContent = name;
             document.getElementById('uploadModal').dataset.person = name;
-            ['avatarFile', 'shinyFile', 'videoFile'].forEach(id => {
+            ['avatarFile', 'videoFile'].forEach(id => {
                 document.getElementById(id).value = '';
             });
             document.getElementById('uploadModal').classList.remove('hidden');
@@ -893,7 +886,6 @@
             const low   = name.toLowerCase();
             const files = {
                 avatarFile: `${low}.png`,
-                shinyFile:  `${low}_shiny.png`,
                 videoFile:  `${low}_picked.mp4`,
             };
 
