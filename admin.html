@@ -516,10 +516,15 @@
         <button class="save-btn" id="saveBtn" disabled>💾 Save &amp; Commit to GitHub</button>
     </div>
 
-    <!-- ── File upload modal ──────────────────────────────────────────────── -->
+    <!-- ── Edit user modal ────────────────────────────────────────────────── -->
     <div class="modal-backdrop hidden" id="uploadModal">
         <div class="modal">
-            <h3>📁 Upload files for <span id="uploadModalName" style="color:#764ba2"></span></h3>
+            <h3>✏️ Edit <span id="uploadModalName" style="color:#764ba2"></span></h3>
+            <div class="field">
+                <label>Name</label>
+                <input type="text" id="editUserName" placeholder="e.g. John">
+                <div class="hint">Renaming will also rename asset files (`{name}.png`, `{name}_picked.mp4`) in the repo.</div>
+            </div>
             <div class="field">
                 <label>Avatar (normal) — <code>{name}.png</code></label>
                 <input type="file" id="avatarFile" accept="image/png,image/jpeg,image/gif,image/webp">
@@ -531,7 +536,7 @@
             </div>
             <div class="modal-actions">
                 <button class="btn btn-secondary" id="cancelUpload">Cancel</button>
-                <button class="btn btn-primary" id="confirmUpload">Queue for upload</button>
+                <button class="btn btn-primary" id="confirmUpload">Save</button>
             </div>
         </div>
     </div>
@@ -561,6 +566,7 @@
         let configSha      = null;
         let existingFiles  = new Set();
         let pendingUploads = [];   // { path, content (base64) }
+        let pendingRenames = [];   // { from, to } — asset renames applied at save time
         let hasChanges     = false;
 
         // ── GitHub API helpers ────────────────────────────────────────────────
@@ -657,7 +663,47 @@
             document.getElementById('saveBtn').disabled = true;
 
             try {
-                // 1. Upload queued files
+                // 1. Apply asset renames (copy content to new path, delete old)
+                for (const { from, to } of pendingRenames) {
+                    setStatus(`Renaming ${from} → ${to}…`, 'info');
+
+                    const getRes = await ghFetch(`contents/${from}`);
+                    if (!getRes.ok) continue; // source already gone — skip silently
+
+                    const src = await getRes.json();
+                    const content = src.content.replace(/\s/g, '');
+
+                    const putRes = await ghFetch(`contents/${to}`, {
+                        method: 'PUT',
+                        body: JSON.stringify({
+                            message: `Rename ${from} → ${to} via admin panel`,
+                            content,
+                            branch: BRANCH,
+                        }),
+                    });
+                    if (!putRes.ok) {
+                        const err = await putRes.json();
+                        throw new Error(`Rename failed (create ${to}): ${err.message}`);
+                    }
+
+                    const delRes = await ghFetch(`contents/${from}`, {
+                        method: 'DELETE',
+                        body: JSON.stringify({
+                            message: `Rename ${from} → ${to} via admin panel (cleanup)`,
+                            sha: src.sha,
+                            branch: BRANCH,
+                        }),
+                    });
+                    if (!delRes.ok) {
+                        const err = await delRes.json();
+                        throw new Error(`Rename failed (delete ${from}): ${err.message}`);
+                    }
+
+                    existingFiles.delete(from);
+                    existingFiles.add(to);
+                }
+
+                // 2. Upload queued files
                 for (const upload of pendingUploads) {
                     setStatus(`Uploading ${upload.path}…`, 'info');
                     const sha = await getFileSha(upload.path);
@@ -679,7 +725,7 @@
                     existingFiles.add(upload.path.toLowerCase());
                 }
 
-                // 2. Commit config.json
+                // 3. Commit config.json
                 setStatus('Saving config.json…', 'info');
                 const body = {
                     message: 'Update config via admin panel',
@@ -699,6 +745,7 @@
 
                 configSha = (await res.json()).content.sha;
                 pendingUploads = [];
+                pendingRenames = [];
                 hasChanges = false;
                 document.getElementById('saveBtn').disabled = true;
                 setStatus('✅ Saved! The site will update in about 1 minute.', 'success');
@@ -740,7 +787,10 @@
                     <div class="group-card">
                         <div class="group-card-header">
                             <h3>${groupName}</h3>
-                            <button class="small-btn danger" onclick="deleteGroup('${groupName}')">🗑 Delete</button>
+                            <div class="td-actions">
+                                <button class="small-btn" onclick="renameGroup('${groupName}')">✏️ Rename</button>
+                                <button class="small-btn danger" onclick="deleteGroup('${groupName}')">🗑 Delete</button>
+                            </div>
                         </div>
                         <div class="group-members">${memberTags}</div>
                         <div class="add-member-row">
@@ -783,7 +833,7 @@
                     <td>${groups}</td>
                     <td>
                         <div class="td-actions">
-                            <button class="small-btn" onclick="openUpload('${name}')">📁 Files</button>
+                            <button class="small-btn" onclick="openUpload('${name}')">✏️ Edit</button>
                             <button class="small-btn danger" onclick="removePerson('${name}')">Remove</button>
                         </div>
                     </td>
@@ -819,6 +869,21 @@
         function deleteGroup(name) {
             if (!confirm(`Delete group "${name}"?\nPeople will remain in the list.`)) return;
             delete config.groups[name];
+            markChanged(); render();
+        }
+
+        function renameGroup(oldName) {
+            const raw = prompt('New group name:', oldName);
+            if (raw === null) return;
+            const newName = raw.trim();
+            if (!newName || newName === oldName) return;
+            if (config.groups[newName]) { alert('Group with that name already exists.'); return; }
+            // Rebuild groups object preserving key order
+            const rebuilt = {};
+            for (const key of Object.keys(config.groups)) {
+                rebuilt[key === oldName ? newName : key] = config.groups[key];
+            }
+            config.groups = rebuilt;
             markChanged(); render();
         }
 
@@ -866,11 +931,12 @@
             markChanged(); render();
         }
 
-        // ── File upload modal ─────────────────────────────────────────────────
+        // ── Edit user modal ───────────────────────────────────────────────────
 
         function openUpload(name) {
             document.getElementById('uploadModalName').textContent = name;
             document.getElementById('uploadModal').dataset.person = name;
+            document.getElementById('editUserName').value = name;
             ['avatarFile', 'videoFile'].forEach(id => {
                 document.getElementById(id).value = '';
             });
@@ -881,9 +947,53 @@
             document.getElementById('uploadModal').classList.add('hidden');
         }
 
+        // Plan asset renames when a person's name changes. Retargets pending
+        // work in place and schedules a repo-level rename only when needed.
+        function planAssetRename(oldName, newName) {
+            const oldLow = oldName.toLowerCase();
+            const newLow = newName.toLowerCase();
+            if (oldLow === newLow) return; // capitalization-only; asset paths unchanged
+
+            for (const suffix of ['.png', '_picked.mp4']) {
+                const oldPath = `${oldLow}${suffix}`;
+                const newPath = `${newLow}${suffix}`;
+
+                // Retarget a queued upload aimed at the old path
+                const pu = pendingUploads.find(u => u.path === oldPath);
+                if (pu) pu.path = newPath;
+
+                // Retarget an earlier rename that would land at the old path
+                const pr = pendingRenames.find(r => r.to === oldPath);
+                if (pr) { pr.to = newPath; continue; }
+
+                // Otherwise, if the file lives in the repo and no upload is about to overwrite it, schedule a rename
+                if (existingFiles.has(oldPath) && !pu) {
+                    pendingRenames.push({ from: oldPath, to: newPath });
+                }
+            }
+        }
+
         async function confirmUploadFiles() {
-            const name  = document.getElementById('uploadModal').dataset.person;
-            const low   = name.toLowerCase();
+            const oldName = document.getElementById('uploadModal').dataset.person;
+            const newName = document.getElementById('editUserName').value.trim();
+
+            if (!newName) { alert('Name cannot be empty.'); return; }
+            if (newName !== oldName && config.people.includes(newName)) {
+                alert('Another person with that name already exists.');
+                return;
+            }
+
+            // Apply the rename first, so file uploads below use the new lowercase path
+            if (newName !== oldName) {
+                planAssetRename(oldName, newName);
+                const idx = config.people.indexOf(oldName);
+                if (idx !== -1) config.people[idx] = newName;
+                Object.keys(config.groups).forEach(g => {
+                    config.groups[g] = config.groups[g].map(n => n === oldName ? newName : n);
+                });
+            }
+
+            const low = newName.toLowerCase();
             const files = {
                 avatarFile: `${low}.png`,
                 videoFile:  `${low}_picked.mp4`,
@@ -974,6 +1084,7 @@
 
         // Make inline onclick handlers accessible
         window.deleteGroup   = deleteGroup;
+        window.renameGroup   = renameGroup;
         window.addMember     = addMember;
         window.removeMember  = removeMember;
         window.openUpload    = openUpload;
