@@ -1319,7 +1319,9 @@
                 return;
             }
 
-            listContainer.innerHTML = visible.map(person => `
+            listContainer.innerHTML = [...visible]
+                .sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()))
+                .map(person => `
                 <div class="person-item">
                     <input type="checkbox"
                            id="person-${person.name}"
