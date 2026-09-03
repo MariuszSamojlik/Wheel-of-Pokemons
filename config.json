@@ -89,5 +89,23 @@
       "Marcin A",
       "Satya"
     ]
+  },
+  "pokemon": {
+    "Alex": 18,
+    "Ankit": 25,
+    "Atish": 1,
+    "Deepthi": 133,
+    "Eric": 104,
+    "Francois": 143,
+    "Jakub": 6,
+    "Luxmi": 7,
+    "Marian": 4,
+    "Mariusz": 92,
+    "Minesh": 131,
+    "Muhammad": 10,
+    "Paul": 15,
+    "Yasmin": 39,
+    "Yiannis": 94,
+    "Rares": 63
   }
 }
