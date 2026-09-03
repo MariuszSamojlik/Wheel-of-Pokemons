@@ -515,6 +515,34 @@
         }
         .toast.show { opacity: 1; }
 
+        /* ── Preview modal + clickable status cells ──────────────────────────── */
+        .file-icon.clickable { cursor: pointer; border-radius: 6px; transition: background 0.15s; }
+        .file-icon.clickable:hover { background: #f3f4f6; }
+        .pokemon-cell-sprite {
+            width: 36px;
+            height: 36px;
+            object-fit: contain;
+            image-rendering: pixelated;
+            vertical-align: middle;
+        }
+        .preview-modal { max-width: 640px; padding: 20px; }
+        .preview-content {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 200px;
+            max-height: 70vh;
+            background: #f9fafb;
+            border-radius: 8px;
+            padding: 12px;
+        }
+        .preview-content img,
+        .preview-content video {
+            max-width: 100%;
+            max-height: 65vh;
+            border-radius: 6px;
+        }
+
         /* ── Auth overlay ────────────────────────────────────────────────────── */
         .auth-overlay {
             position: fixed;
@@ -725,6 +753,17 @@
             <div class="modal-actions">
                 <button class="btn btn-secondary" id="cancelAddPerson">Cancel</button>
                 <button class="btn btn-primary" id="confirmAddPerson">Add &amp; upload files</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Preview modal (avatar / video) ─────────────────────────────────── -->
+    <div class="modal-backdrop hidden" id="previewModal">
+        <div class="modal preview-modal">
+            <h3 id="previewTitle"></h3>
+            <div class="preview-content" id="previewContent"></div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" id="closePreview">Close</button>
             </div>
         </div>
     </div>
@@ -1005,9 +1044,26 @@
                 const hasPending = (suffix) => pendingUploads.some(u => u.path === `${low}${suffix}`);
                 const hasFile    = (suffix) => existingFiles.has(`${low}${suffix}`);
 
-                const avatar = (hasFile('.png')         || hasPending('.png'))         ? '✅' : '❌';
-                const video  = (hasFile('_picked.mp4')  || hasPending('_picked.mp4'))  ? '✅' : '❌';
-                const pokemon = config.pokemon[name] ? '✅' : '❌';
+                const avatarPresent = hasFile('.png')        || hasPending('.png');
+                const videoPresent  = hasFile('_picked.mp4') || hasPending('_picked.mp4');
+                const avatarCell = avatarPresent
+                    ? `<td class="file-icon clickable" onclick="openPreview('avatar', '${name}')" title="Click to preview">✅</td>`
+                    : `<td class="file-icon">❌</td>`;
+                const videoCell = videoPresent
+                    ? `<td class="file-icon clickable" onclick="openPreview('video', '${name}')" title="Click to preview">✅</td>`
+                    : `<td class="file-icon">❌</td>`;
+
+                let pokemonCell;
+                const assignedId = config.pokemon[name];
+                if (assignedId) {
+                    const p = pokemonById(assignedId);
+                    pokemonCell = p
+                        ? `<td class="file-icon"><img class="pokemon-cell-sprite" src="${p.sprite}" alt="${p.name}" title="${p.name}"></td>`
+                        : `<td class="file-icon">❌</td>`;
+                } else {
+                    pokemonCell = `<td class="file-icon">❌</td>`;
+                }
+
                 const pending = hasPending('.png') || hasPending('_picked.mp4')
                     ? '<span class="pending-badge">pending</span>' : '';
 
@@ -1018,9 +1074,9 @@
 
                 return `<tr>
                     <td><strong>${name}</strong>${pending}</td>
-                    <td class="file-icon">${avatar}</td>
-                    <td class="file-icon">${video}</td>
-                    <td class="file-icon">${pokemon}</td>
+                    ${avatarCell}
+                    ${videoCell}
+                    ${pokemonCell}
                     <td>${groups}</td>
                     <td>
                         <div class="td-actions">
@@ -1364,6 +1420,41 @@
             }
         });
 
+        // ── Preview modal (avatar / video) ────────────────────────────────────
+
+        function openPreview(type, personName) {
+            const low = personName.toLowerCase();
+            const path = type === 'avatar' ? `${low}.png` : `${low}_picked.mp4`;
+
+            // Prefer freshly-queued upload content (not yet in the repo)
+            const pending = pendingUploads.find(u => u.path === path);
+            let src;
+            if (pending) {
+                const mime = type === 'avatar' ? 'image/png' : 'video/mp4';
+                src = `data:${mime};base64,${pending.content}`;
+            } else {
+                src = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${BRANCH}/${encodeURIComponent(path)}`;
+            }
+
+            const content = document.getElementById('previewContent');
+            const title = document.getElementById('previewTitle');
+            title.textContent = type === 'avatar' ? `🖼 ${personName} — avatar` : `🎬 ${personName} — picked video`;
+            if (type === 'avatar') {
+                content.innerHTML = `<img src="${src}" alt="${personName}">`;
+            } else {
+                content.innerHTML = `<video controls autoplay src="${src}"></video>`;
+            }
+            document.getElementById('previewModal').classList.remove('hidden');
+        }
+
+        function closePreview() {
+            const content = document.getElementById('previewContent');
+            const vid = content.querySelector('video');
+            if (vid) { vid.pause(); vid.removeAttribute('src'); vid.load(); }
+            content.innerHTML = '';
+            document.getElementById('previewModal').classList.add('hidden');
+        }
+
         // ── Gemini prompt (copy text + image to clipboard) ────────────────────
 
         let toastTimer = null;
@@ -1504,6 +1595,16 @@
             if (e.target === document.getElementById('addPersonModal')) closeAddPerson();
         });
 
+        document.getElementById('closePreview').addEventListener('click', closePreview);
+        document.getElementById('previewModal').addEventListener('click', e => {
+            if (e.target === document.getElementById('previewModal')) closePreview();
+        });
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape' && !document.getElementById('previewModal').classList.contains('hidden')) {
+                closePreview();
+            }
+        });
+
         // Wire up pokemon dropdowns (toggle + search)
         ['add', 'edit'].forEach(context => {
             const dropdown = document.getElementById(`${context}PokemonDropdown`);
@@ -1524,6 +1625,7 @@
         window.removeMember  = removeMember;
         window.openUpload    = openUpload;
         window.removePerson  = removePerson;
+        window.openPreview   = openPreview;
 
         // ── Auto-connect if token is already in session ───────────────────────
         if (token) {
