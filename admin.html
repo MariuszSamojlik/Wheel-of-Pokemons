@@ -794,7 +794,8 @@
 
         function renderGroups() {
             const grid = document.getElementById('groupsGrid');
-            const names = Object.keys(config.groups);
+            const names = Object.keys(config.groups)
+                .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 
             if (names.length === 0) {
                 grid.innerHTML = '<p style="color:#9ca3af;font-size:14px;">No groups yet. Click "+ New Group" to create one.</p>';
@@ -803,7 +804,9 @@
 
             grid.innerHTML = names.map(groupName => {
                 const members  = config.groups[groupName];
-                const available = config.people.filter(p => !members.includes(p));
+                const available = config.people
+                    .filter(p => !members.includes(p))
+                    .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
                 const memberTags = members.length === 0
                     ? '<span class="empty-group">No members yet</span>'
                     : members.map(name =>
@@ -840,7 +843,9 @@
                 return;
             }
 
-            const rows = config.people.map(name => {
+            const rows = [...config.people]
+                .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()))
+                .map(name => {
                 const low = name.toLowerCase();
                 const hasPending = (suffix) => pendingUploads.some(u => u.path === `${low}${suffix}`);
                 const hasFile    = (suffix) => existingFiles.has(`${low}${suffix}`);
@@ -935,7 +940,8 @@
 
             // Re-render team checkboxes each time (groups may have changed)
             const container = document.getElementById('newPersonGroups');
-            const groups = Object.keys(config.groups);
+            const groups = Object.keys(config.groups)
+                .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
             if (groups.length === 0) {
                 container.innerHTML = '<div style="font-size:12px;color:#9ca3af;padding:4px 6px;">No teams defined yet.</div>';
             } else {
