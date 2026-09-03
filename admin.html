@@ -389,6 +389,30 @@
 
         .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
 
+        .checkbox-list {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            max-height: 180px;
+            overflow-y: auto;
+            padding: 8px;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+        }
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 6px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #374151;
+            cursor: pointer;
+        }
+        .checkbox-row:hover { background: #f3f4f6; }
+        .checkbox-row input { cursor: pointer; }
+
         /* ── Auth overlay ────────────────────────────────────────────────────── */
         .auth-overlay {
             position: fixed;
@@ -548,6 +572,11 @@
             <div class="field">
                 <label>Name</label>
                 <input type="text" id="newPersonName" placeholder="e.g. John">
+            </div>
+            <div class="field">
+                <label>Assign to teams (optional)</label>
+                <div class="checkbox-list" id="newPersonGroups"></div>
+                <div class="hint">Leave all unchecked to skip team assignment.</div>
             </div>
             <div class="modal-actions">
                 <button class="btn btn-secondary" id="cancelAddPerson">Cancel</button>
@@ -903,6 +932,22 @@
 
         function openAddPerson() {
             document.getElementById('newPersonName').value = '';
+
+            // Re-render team checkboxes each time (groups may have changed)
+            const container = document.getElementById('newPersonGroups');
+            const groups = Object.keys(config.groups);
+            if (groups.length === 0) {
+                container.innerHTML = '<div style="font-size:12px;color:#9ca3af;padding:4px 6px;">No teams defined yet.</div>';
+            } else {
+                container.innerHTML = groups.map(g => {
+                    const safe = g.replace(/"/g, '&quot;');
+                    return `<label class="checkbox-row">
+                        <input type="checkbox" data-group="${safe}">
+                        <span>${g}</span>
+                    </label>`;
+                }).join('');
+            }
+
             document.getElementById('addPersonModal').classList.remove('hidden');
             setTimeout(() => document.getElementById('newPersonName').focus(), 50);
         }
@@ -916,6 +961,15 @@
             if (!name) return;
             if (config.people.includes(name)) { alert('Person already exists.'); return; }
             config.people.push(name);
+
+            // Assign to selected teams (if any)
+            document.querySelectorAll('#newPersonGroups input[data-group]:checked').forEach(cb => {
+                const g = cb.dataset.group;
+                if (config.groups[g] && !config.groups[g].includes(name)) {
+                    config.groups[g].push(name);
+                }
+            });
+
             markChanged();
             closeAddPerson();
             render();
