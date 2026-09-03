@@ -753,15 +753,5 @@
     "id": 151,
     "name": "Mew",
     "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/151.png"
-  },
-  {
-    "id": 10043,
-    "name": "Mega Mewtwo X",
-    "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10043.png"
-  },
-  {
-    "id": 10044,
-    "name": "Mega Mewtwo Y",
-    "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10044.png"
   }
 ]
