@@ -18,33 +18,41 @@
     "Sam",
     "Hec",
     "Jibin",
-    "Yiannis"
+    "Yiannis",
+    "Atish",
+    "Jakub",
+    "Luxmi"
   ],
   "groups": {
-    "ContentApp": [
-      "Ankit",
-      "Marian",
-      "Mariusz",
-      "Hec",
-      "Minesh",
-      "Muhammad",
-      "Paul",
-      "Yasmin",
-      "Eric",
-      "Alex",
-      "Yiannis"
-    ],
-    "Headlines": [
-      "Jibin"
-    ],
-    "Quicksilver": [
-      "Mariusz"
-    ],
     "Centris": [
       "Sam",
       "Tanu",
       "Tony",
       "Sachin"
+    ],
+    "Destination Journey": [
+      "Ankit",
+      "Mariusz",
+      "Minesh",
+      "Paul",
+      "Alex",
+      "Jakub",
+      "Luxmi"
+    ],
+    "Real Estate": [
+      "Marian",
+      "Jibin",
+      "Deepthi",
+      "Yiannis"
+    ],
+    "LS Engagement": [
+      "Muhammad",
+      "Francois",
+      "Eric"
+    ],
+    "Monetization": [
+      "Yasmin",
+      "Rares"
     ]
   }
 }
