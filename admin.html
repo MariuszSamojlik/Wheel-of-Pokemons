@@ -413,6 +413,68 @@
         .checkbox-row:hover { background: #f3f4f6; }
         .checkbox-row input { cursor: pointer; }
 
+        /* ── Pokemon dropdown ────────────────────────────────────────────────── */
+        .pokemon-dropdown { position: relative; }
+        .pokemon-dropdown-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            padding: 8px 10px;
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #374151;
+            cursor: pointer;
+            text-align: left;
+        }
+        .pokemon-dropdown-toggle:hover { border-color: #764ba2; }
+        .pokemon-dropdown-toggle img { width: 32px; height: 32px; object-fit: contain; image-rendering: pixelated; }
+        .pokemon-dropdown-toggle img.empty { visibility: hidden; }
+        .pokemon-dropdown-toggle .pokemon-name { flex: 1; }
+        .pokemon-dropdown-toggle .arrow { color: #9ca3af; font-size: 10px; }
+        .pokemon-dropdown-panel {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            right: 0;
+            z-index: 10;
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+            max-height: 300px;
+            display: flex;
+            flex-direction: column;
+        }
+        .pokemon-dropdown-panel.hidden { display: none; }
+        .pokemon-dropdown-search {
+            padding: 8px 10px;
+            border: none;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 13px;
+            outline: none;
+        }
+        .pokemon-dropdown-items {
+            overflow-y: auto;
+            flex: 1;
+        }
+        .pokemon-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #374151;
+        }
+        .pokemon-item:hover { background: #f3f4f6; }
+        .pokemon-item.selected { background: #ede9fe; font-weight: 600; }
+        .pokemon-item img { width: 32px; height: 32px; object-fit: contain; image-rendering: pixelated; }
+        .pokemon-item.none-option { border-bottom: 1px solid #e5e7eb; color: #9ca3af; font-style: italic; }
+        .pokemon-item.none-option img { visibility: hidden; }
+
         /* ── Auth overlay ────────────────────────────────────────────────────── */
         .auth-overlay {
             position: fixed;
@@ -558,6 +620,20 @@
                 <input type="file" id="videoFile" accept="video/mp4,video/webm">
                 <div class="hint">Max ~50 MB. Larger files must be uploaded manually to GitHub.</div>
             </div>
+            <div class="field">
+                <label>Pokemon</label>
+                <div class="pokemon-dropdown" id="editPokemonDropdown" data-context="edit">
+                    <button type="button" class="pokemon-dropdown-toggle" data-pokemon-id="">
+                        <img class="empty" alt="">
+                        <span class="pokemon-name">None</span>
+                        <span class="arrow">▾</span>
+                    </button>
+                    <div class="pokemon-dropdown-panel hidden">
+                        <input type="search" class="pokemon-dropdown-search" placeholder="Search…">
+                        <div class="pokemon-dropdown-items"></div>
+                    </div>
+                </div>
+            </div>
             <div class="modal-actions">
                 <button class="btn btn-secondary" id="cancelUpload">Cancel</button>
                 <button class="btn btn-primary" id="confirmUpload">Save</button>
@@ -578,6 +654,20 @@
                 <div class="checkbox-list" id="newPersonGroups"></div>
                 <div class="hint">Leave all unchecked to skip team assignment.</div>
             </div>
+            <div class="field">
+                <label>Pokemon (optional)</label>
+                <div class="pokemon-dropdown" id="addPokemonDropdown" data-context="add">
+                    <button type="button" class="pokemon-dropdown-toggle" data-pokemon-id="">
+                        <img class="empty" alt="">
+                        <span class="pokemon-name">None</span>
+                        <span class="arrow">▾</span>
+                    </button>
+                    <div class="pokemon-dropdown-panel hidden">
+                        <input type="search" class="pokemon-dropdown-search" placeholder="Search…">
+                        <div class="pokemon-dropdown-items"></div>
+                    </div>
+                </div>
+            </div>
             <div class="modal-actions">
                 <button class="btn btn-secondary" id="cancelAddPerson">Cancel</button>
                 <button class="btn btn-primary" id="confirmAddPerson">Add &amp; upload files</button>
@@ -591,11 +681,12 @@
         const BRANCH     = 'main';
 
         let token          = sessionStorage.getItem('ghToken') || '';
-        let config         = { people: [], groups: {} };
+        let config         = { people: [], groups: {}, pokemon: {} };
         let configSha      = null;
         let existingFiles  = new Set();
         let pendingUploads = [];   // { path, content (base64) }
         let pendingRenames = [];   // { from, to } — asset renames applied at save time
+        let pokemonList    = [];   // [{ id, name, sprite }] loaded from pokemon.json
         let hasChanges     = false;
 
         // ── GitHub API helpers ────────────────────────────────────────────────
@@ -674,6 +765,14 @@
                     },
                 };
             }
+            // Backwards compat: ensure pokemon map exists
+            if (!config.pokemon) config.pokemon = {};
+
+            // pokemon.json (static list of pokemons + sprites)
+            try {
+                const pokeRes = await fetch('./pokemon.json');
+                if (pokeRes.ok) pokemonList = await pokeRes.json();
+            } catch (e) { /* leave pokemonList empty */ }
 
             // Root file listing
             const filesRes = await ghFetch('contents/');
@@ -852,6 +951,7 @@
 
                 const avatar = (hasFile('.png')         || hasPending('.png'))         ? '✅' : '❌';
                 const video  = (hasFile('_picked.mp4')  || hasPending('_picked.mp4'))  ? '✅' : '❌';
+                const pokemon = config.pokemon[name] ? '✅' : '❌';
                 const pending = hasPending('.png') || hasPending('_picked.mp4')
                     ? '<span class="pending-badge">pending</span>' : '';
 
@@ -864,6 +964,7 @@
                     <td><strong>${name}</strong>${pending}</td>
                     <td class="file-icon">${avatar}</td>
                     <td class="file-icon">${video}</td>
+                    <td class="file-icon">${pokemon}</td>
                     <td>${groups}</td>
                     <td>
                         <div class="td-actions">
@@ -881,6 +982,7 @@
                             <th>Name</th>
                             <th>Avatar</th>
                             <th>Video</th>
+                            <th>Pokemon</th>
                             <th>Groups</th>
                             <th>Actions</th>
                         </tr>
@@ -954,6 +1056,10 @@
                 }).join('');
             }
 
+            // Reset pokemon dropdown to "None" and repopulate available list
+            setPokemonSelection('add', null);
+            renderPokemonDropdown('add', null);
+
             document.getElementById('addPersonModal').classList.remove('hidden');
             setTimeout(() => document.getElementById('newPersonName').focus(), 50);
         }
@@ -976,6 +1082,10 @@
                 }
             });
 
+            // Assign selected pokemon (if any)
+            const pokemonId = getPokemonSelection('add');
+            if (pokemonId) config.pokemon[name] = pokemonId;
+
             markChanged();
             closeAddPerson();
             render();
@@ -988,6 +1098,7 @@
             Object.keys(config.groups).forEach(g => {
                 config.groups[g] = config.groups[g].filter(n => n !== name);
             });
+            delete config.pokemon[name];
             markChanged(); render();
         }
 
@@ -1000,6 +1111,12 @@
             ['avatarFile', 'videoFile'].forEach(id => {
                 document.getElementById(id).value = '';
             });
+
+            // Load current pokemon assignment (if any) and populate dropdown
+            const currentId = config.pokemon[name] || null;
+            setPokemonSelection('edit', currentId);
+            renderPokemonDropdown('edit', name); // exclude this person's own pokemon from "taken" filter
+
             document.getElementById('uploadModal').classList.remove('hidden');
         }
 
@@ -1051,6 +1168,19 @@
                 Object.keys(config.groups).forEach(g => {
                     config.groups[g] = config.groups[g].map(n => n === oldName ? newName : n);
                 });
+                // Move pokemon assignment to the new key
+                if (config.pokemon[oldName] !== undefined) {
+                    config.pokemon[newName] = config.pokemon[oldName];
+                    delete config.pokemon[oldName];
+                }
+            }
+
+            // Apply pokemon selection (may be a change, an unassign, or a no-op)
+            const pokemonId = getPokemonSelection('edit');
+            if (pokemonId) {
+                config.pokemon[newName] = pokemonId;
+            } else {
+                delete config.pokemon[newName];
             }
 
             const low = newName.toLowerCase();
@@ -1075,6 +1205,107 @@
             closeUpload();
             render();
         }
+
+        // ── Pokemon dropdown ──────────────────────────────────────────────────
+
+        function pokemonById(id) {
+            return pokemonList.find(p => p.id === Number(id));
+        }
+
+        function pokemonAssignedTo(personName) {
+            const id = config.pokemon[personName];
+            return id ? pokemonById(id) : null;
+        }
+
+        function getAvailablePokemon(excludePerson) {
+            const taken = new Set();
+            for (const [person, id] of Object.entries(config.pokemon)) {
+                if (person !== excludePerson) taken.add(Number(id));
+            }
+            return pokemonList.filter(p => !taken.has(p.id));
+        }
+
+        function setPokemonSelection(context, id) {
+            const dropdown = document.getElementById(`${context}PokemonDropdown`);
+            const toggle = dropdown.querySelector('.pokemon-dropdown-toggle');
+            const img = toggle.querySelector('img');
+            const label = toggle.querySelector('.pokemon-name');
+            if (id) {
+                const p = pokemonById(id);
+                toggle.dataset.pokemonId = String(p.id);
+                img.src = p.sprite;
+                img.classList.remove('empty');
+                label.textContent = p.name;
+            } else {
+                toggle.dataset.pokemonId = '';
+                img.removeAttribute('src');
+                img.classList.add('empty');
+                label.textContent = 'None';
+            }
+        }
+
+        function getPokemonSelection(context) {
+            const toggle = document.querySelector(`#${context}PokemonDropdown .pokemon-dropdown-toggle`);
+            const raw = toggle.dataset.pokemonId;
+            return raw ? Number(raw) : null;
+        }
+
+        function renderPokemonDropdown(context, excludePerson) {
+            const dropdown = document.getElementById(`${context}PokemonDropdown`);
+            const itemsEl = dropdown.querySelector('.pokemon-dropdown-items');
+            const searchEl = dropdown.querySelector('.pokemon-dropdown-search');
+            searchEl.value = '';
+            const available = getAvailablePokemon(excludePerson);
+            const currentId = getPokemonSelection(context);
+
+            const html = [
+                `<div class="pokemon-item none-option" data-id=""><img alt=""><span>None (unassigned)</span></div>`,
+                ...available.map(p => `
+                    <div class="pokemon-item ${currentId === p.id ? 'selected' : ''}" data-id="${p.id}">
+                        <img src="${p.sprite}" alt="${p.name}">
+                        <span>${p.name}</span>
+                    </div>
+                `),
+            ].join('');
+            itemsEl.innerHTML = html;
+
+            itemsEl.querySelectorAll('.pokemon-item').forEach(el => {
+                el.addEventListener('click', () => {
+                    const raw = el.dataset.id;
+                    setPokemonSelection(context, raw ? Number(raw) : null);
+                    dropdown.querySelector('.pokemon-dropdown-panel').classList.add('hidden');
+                });
+            });
+        }
+
+        function togglePokemonDropdown(context) {
+            const panel = document.querySelector(`#${context}PokemonDropdown .pokemon-dropdown-panel`);
+            const willOpen = panel.classList.contains('hidden');
+            // Close all other pokemon dropdowns first
+            document.querySelectorAll('.pokemon-dropdown-panel').forEach(p => p.classList.add('hidden'));
+            if (willOpen) {
+                panel.classList.remove('hidden');
+                const search = panel.querySelector('.pokemon-dropdown-search');
+                setTimeout(() => search.focus(), 30);
+            }
+        }
+
+        function filterPokemonDropdown(context, query) {
+            const q = query.toLowerCase().trim();
+            const items = document.querySelectorAll(`#${context}PokemonDropdown .pokemon-item`);
+            items.forEach(el => {
+                if (el.classList.contains('none-option')) { el.style.display = ''; return; }
+                const name = el.querySelector('span').textContent.toLowerCase();
+                el.style.display = name.includes(q) ? '' : 'none';
+            });
+        }
+
+        // Close any open pokemon dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.pokemon-dropdown')) {
+                document.querySelectorAll('.pokemon-dropdown-panel').forEach(p => p.classList.add('hidden'));
+            }
+        });
 
         // ── Helpers ───────────────────────────────────────────────────────────
 
@@ -1140,6 +1371,19 @@
         document.getElementById('confirmAddPerson').addEventListener('click', confirmAddPerson);
         document.getElementById('addPersonModal').addEventListener('click', e => {
             if (e.target === document.getElementById('addPersonModal')) closeAddPerson();
+        });
+
+        // Wire up pokemon dropdowns (toggle + search)
+        ['add', 'edit'].forEach(context => {
+            const dropdown = document.getElementById(`${context}PokemonDropdown`);
+            dropdown.querySelector('.pokemon-dropdown-toggle').addEventListener('click', (e) => {
+                e.stopPropagation();
+                togglePokemonDropdown(context);
+            });
+            dropdown.querySelector('.pokemon-dropdown-search').addEventListener('input', (e) => {
+                filterPokemonDropdown(context, e.target.value);
+            });
+            dropdown.querySelector('.pokemon-dropdown-search').addEventListener('click', (e) => e.stopPropagation());
         });
 
         // Make inline onclick handlers accessible
