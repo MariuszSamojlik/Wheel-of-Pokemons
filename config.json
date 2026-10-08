@@ -147,5 +147,12 @@
     "Ship it! (Water types only)",
     "I'm not lazy, I'm in low-power mode.",
     "Merge conflict? Use Thunderbolt."
+  ],
+  "games": [
+    {
+      "name": "Skribbl",
+      "url": "https://Skribbl.io",
+      "icon": "https://skribblgame.io//data/image/game/skribbl-game-banner.jpg"
+    }
   ]
 }
