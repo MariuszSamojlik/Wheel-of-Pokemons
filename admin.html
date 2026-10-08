@@ -916,6 +916,7 @@
             <div class="field">
                 <label>Icon — emoji or image URL</label>
                 <input type="text" id="gameIcon" placeholder="e.g. 🎨 or https://…/icon.png">
+                <div class="hint">Image URLs are downloaded and saved in the repo on save.</div>
             </div>
             <div class="field">
                 <label>…or upload an icon image</label>
@@ -1359,6 +1360,36 @@
             document.getElementById('gameModal').classList.add('hidden');
         }
 
+        const ICON_EXTENSIONS = {
+            'image/png': 'png',
+            'image/jpeg': 'jpg',
+            'image/gif': 'gif',
+            'image/webp': 'webp',
+            'image/svg+xml': 'svg',
+            'image/x-icon': 'ico',
+            'image/vnd.microsoft.icon': 'ico',
+        };
+
+        // Try the image directly first, then through an image proxy that sends CORS headers
+        async function downloadIcon(url) {
+            const sources = [url, `https://images.weserv.nl/?url=${encodeURIComponent(url)}`];
+            for (const source of sources) {
+                try {
+                    const res = await fetch(source);
+                    if (!res.ok) continue;
+                    const blob = await res.blob();
+                    if (blob.type.startsWith('image/')) return blob;
+                } catch (e) { /* blocked by CORS or offline — try next source */ }
+            }
+            return null;
+        }
+
+        function queueIconUpload(path, content, type) {
+            pendingUploads = pendingUploads.filter(u => u.path !== path);
+            pendingUploads.push({ path, content });
+            iconPreviews[path] = `data:${type};base64,${content}`;
+        }
+
         async function confirmGame() {
             const name = document.getElementById('gameName').value.trim();
             const url  = document.getElementById('gameUrl').value.trim();
@@ -1368,14 +1399,27 @@
             if (!name || !url) { alert('Name and URL are required.'); return; }
             if (!/^https?:\/\//i.test(url)) { alert('URL must start with http:// or https://'); return; }
 
+            const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'game';
+
             if (file) {
-                const ext  = file.name.split('.').pop().toLowerCase();
-                const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'game';
+                const ext = file.name.split('.').pop().toLowerCase();
+                queueIconUpload(`games/${slug}.${ext}`, await fileToBase64(file), file.type);
                 icon = `games/${slug}.${ext}`;
-                const content = await fileToBase64(file);
-                pendingUploads = pendingUploads.filter(u => u.path !== icon);
-                pendingUploads.push({ path: icon, content });
-                iconPreviews[icon] = `data:${file.type};base64,${content}`;
+            } else if (/^https?:\/\//i.test(icon)) {
+                // Copy remote icons into the repo so the game doesn't depend on someone else's URL
+                const btn = document.getElementById('confirmGame');
+                btn.disabled = true;
+                btn.textContent = 'Downloading icon…';
+                const blob = await downloadIcon(icon);
+                btn.disabled = false;
+                btn.textContent = 'Save game';
+                if (!blob) {
+                    alert("Couldn't download this icon (the site blocks it).\nSave the image on your computer and upload it as a file instead.");
+                    return;
+                }
+                const ext = ICON_EXTENSIONS[blob.type] || 'png';
+                queueIconUpload(`games/${slug}.${ext}`, await fileToBase64(blob), blob.type);
+                icon = `games/${slug}.${ext}`;
             }
 
             const game = { name, url, icon };

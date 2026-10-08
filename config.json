@@ -152,27 +152,27 @@
     {
       "name": "Skribbl",
       "url": "https://Skribbl.io",
-      "icon": "https://skribblgame.io//data/image/game/skribbl-game-banner.jpg"
+      "icon": "games/skribbl.jpg"
     },
     {
       "name": "bonk.io",
       "url": "https://bonk.io/",
-      "icon": "https://holeonline.io//data/image/game/bonk-io1.jpg"
+      "icon": "games/bonk-io.jpg"
     },
     {
       "name": "Quiz Of The Day",
       "url": "https://quizoftheday.co.uk/",
-      "icon": "https://quizoftheday.co.uk/img/logo-optimized.jpg"
+      "icon": "games/quiz-of-the-day.jpg"
     },
     {
       "name": "TimeGuessr",
       "url": "https://timeguessr.com/",
-      "icon": "https://images.seeklogo.com/logo-png/63/1/timeguessr-logo-png_seeklogo-632613.png"
+      "icon": "games/timeguessr.png"
     },
     {
       "name": "Wordle",
       "url": "https://www.nytimes.com/games/wordle/index.html",
-      "icon": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c5/Wordle_Logo.svg/960px-Wordle_Logo.svg.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail"
+      "icon": "games/wordle.png"
     },
     {
       "name": "General Knowledge",
