@@ -786,12 +786,17 @@
             <!-- Walking pokemon -->
             <div class="card">
                 <div class="section-header">
-                    <h2>💬 Walking Pokemon Quotes</h2>
+                    <h2>💬 Walking Pokemon</h2>
                 </div>
                 <label class="talk-chance-row">
                     Chance to stop and talk
                     <input type="range" id="talkChance" min="0" max="100" step="5">
                     <output id="talkChanceValue"></output>
+                </label>
+                <label class="talk-chance-row">
+                    Average time between walks
+                    <input type="range" id="walkGap" min="5" max="60" step="5">
+                    <output id="walkGapValue"></output>
                 </label>
                 <ul class="quote-list" id="quoteList"></ul>
                 <div class="add-quote-row">
@@ -1039,6 +1044,7 @@
             if (!Array.isArray(config.pokemonQuotes)) config.pokemonQuotes = [];
             if (!Array.isArray(config.games)) config.games = [];
             if (typeof config.pokemonTalkChance !== 'number') config.pokemonTalkChance = 50;
+            if (typeof config.pokemonWalkGap !== 'number') config.pokemonWalkGap = 35;
 
             // pokemon.json (static list of pokemons + sprites)
             try {
@@ -1202,6 +1208,8 @@
         function renderQuotes() {
             document.getElementById('talkChance').value = config.pokemonTalkChance;
             document.getElementById('talkChanceValue').textContent = `${config.pokemonTalkChance}%`;
+            document.getElementById('walkGap').value = config.pokemonWalkGap;
+            document.getElementById('walkGapValue').textContent = `${config.pokemonWalkGap}s`;
 
             const list = document.getElementById('quoteList');
             if (config.pokemonQuotes.length === 0) {
@@ -1900,6 +1908,11 @@
         document.getElementById('talkChance').addEventListener('input', e => {
             config.pokemonTalkChance = Number(e.target.value);
             document.getElementById('talkChanceValue').textContent = `${config.pokemonTalkChance}%`;
+            markChanged();
+        });
+        document.getElementById('walkGap').addEventListener('input', e => {
+            config.pokemonWalkGap = Number(e.target.value);
+            document.getElementById('walkGapValue').textContent = `${config.pokemonWalkGap}s`;
             markChanged();
         });
 
