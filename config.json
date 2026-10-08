@@ -130,7 +130,7 @@
     "Hec": 83
   },
   "pokemonTalkChance": 60,
-  "pokemonWalkGap": 35,
+  "pokemonWalkGap": 20,
   "pokemonQuotes": [
     "There is no single 'i' in Sliide. There are two.",
     "Pika pika! (Translation: is this a blocker?)",
