@@ -34,6 +34,35 @@
             object-fit: contain;
         }
 
+        .walking-pokemon {
+            position: fixed;
+            bottom: 8px;
+            left: 0;
+            width: 96px;
+            height: 96px;
+            pointer-events: none;
+            z-index: 20;
+            filter: drop-shadow(0 6px 4px rgba(0, 0, 0, 0.35));
+        }
+
+        .walking-pokemon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: bottom;
+            image-rendering: pixelated;
+            animation: pokemon-step 0.4s ease-in-out infinite alternate;
+        }
+
+        .walking-pokemon.facing-right img {
+            transform: scaleX(-1);
+        }
+
+        @keyframes pokemon-step {
+            from { translate: 0 0; }
+            to { translate: 0 -6px; }
+        }
+
         .container {
             display: flex;
             gap: 20px;
@@ -1203,6 +1232,59 @@
             });
         }
 
+        // Pikachu, Bulbasaur, Charmander, Squirtle, Eevee
+        const WALKING_POKEMON_IDS = [25, 1, 4, 7, 133];
+        const WALK_DURATION_MS = 7000;
+
+        function getAnimatedSpriteUrl(id) {
+            return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/${id}.gif`;
+        }
+
+        function randomBetween(min, max) {
+            return min + Math.random() * (max - min);
+        }
+
+        function scheduleWalkingPokemon(delayMs) {
+            setTimeout(walkPokemonAcrossScreen, delayMs);
+        }
+
+        function walkPokemonAcrossScreen() {
+            // Don't walk over the winner reveal; try again shortly
+            if (document.getElementById('winnerOverlay').classList.contains('active')) {
+                scheduleWalkingPokemon(5000);
+                return;
+            }
+
+            const id = WALKING_POKEMON_IDS[Math.floor(Math.random() * WALKING_POKEMON_IDS.length)];
+            const img = new Image();
+            img.alt = '';
+            img.onerror = () => scheduleWalkingPokemon(randomBetween(25000, 45000));
+            img.onload = () => {
+                const walker = document.createElement('div');
+                walker.className = 'walking-pokemon';
+                walker.appendChild(img);
+
+                // Showdown sprites face left; flip when walking right
+                const goingRight = Math.random() < 0.5;
+                if (goingRight) walker.classList.add('facing-right');
+                document.body.appendChild(walker);
+
+                const offscreenLeft = -walker.offsetWidth;
+                const offscreenRight = window.innerWidth;
+                const [from, to] = goingRight ? [offscreenLeft, offscreenRight] : [offscreenRight, offscreenLeft];
+
+                const walk = walker.animate(
+                    [{ transform: `translateX(${from}px)` }, { transform: `translateX(${to}px)` }],
+                    { duration: WALK_DURATION_MS, easing: 'linear' }
+                );
+                walk.onfinish = () => {
+                    walker.remove();
+                    scheduleWalkingPokemon(randomBetween(25000, 45000));
+                };
+            };
+            img.src = getAnimatedSpriteUrl(id);
+        }
+
         function getAvatarUrl(name) {
             const lowercaseName = name.toLowerCase();
             return `./${lowercaseName}.png`;
@@ -1464,6 +1546,9 @@
             TEAM_GROUPS = groups;
 
             createPokemonBackground();
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                scheduleWalkingPokemon(randomBetween(10000, 35000));
+            }
             loadSelectedFromLocalStorage();
             loadGroupFromLocalStorage();
             renderGroupFilters();
