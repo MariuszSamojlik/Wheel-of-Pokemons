@@ -101,6 +101,169 @@
             to { transform: translateX(-50%) scale(1); opacity: 1; }
         }
 
+        .games-button {
+            width: 100%;
+            padding: 8px 0 4px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+        }
+
+        .games-button svg {
+            display: block;
+            width: 100%;
+            height: auto;
+            filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.35));
+            transition: transform 0.2s ease;
+        }
+
+        .games-button:hover svg {
+            transform: rotate(-4deg) scale(1.04);
+        }
+
+        .games-button:focus-visible {
+            outline: 3px solid white;
+            outline-offset: 4px;
+            border-radius: 12px;
+        }
+
+        .games-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 40;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(20, 20, 24, 0.55);
+            backdrop-filter: grayscale(1) blur(2px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            overflow-y: auto;
+        }
+
+        .games-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .games-stage {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+            max-width: 760px;
+            width: 100%;
+            margin: auto;
+        }
+
+        .puppet-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .puppet-row svg {
+            width: 170px;
+            height: auto;
+            flex-shrink: 0;
+        }
+
+        .games-overlay.active .puppet-row svg {
+            animation: puppet-creep 0.6s ease-out;
+        }
+
+        @keyframes puppet-creep {
+            from { transform: translateY(40px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .puppet-bubble {
+            position: relative;
+            margin-top: 24px;
+            padding: 14px 18px;
+            background: white;
+            color: #1a1a1a;
+            border: 3px solid #1a1a1a;
+            border-radius: 16px;
+            font-family: 'Courier New', monospace;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .puppet-bubble::before {
+            content: '';
+            position: absolute;
+            top: 22px;
+            right: 100%;
+            border: 10px solid transparent;
+            border-right-color: #1a1a1a;
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 14px;
+            width: 100%;
+        }
+
+        .game-tile {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 16px 10px;
+            background: white;
+            border-radius: 14px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            color: #333;
+            font-weight: bold;
+            font-size: 14px;
+            text-align: center;
+            text-decoration: none;
+            transition: transform 0.18s ease;
+        }
+
+        .game-tile:hover {
+            transform: translateY(-4px);
+        }
+
+        .game-icon {
+            width: 64px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+        }
+
+        .game-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .games-empty {
+            color: white;
+            font-size: 15px;
+            text-align: center;
+        }
+
+        .games-close {
+            padding: 10px 22px;
+            border: 2px solid white;
+            border-radius: 999px;
+            background: transparent;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
         .container {
             display: flex;
             gap: 20px;
@@ -110,8 +273,16 @@
             z-index: 1;
         }
 
-        .sidebar {
+        .sidebar-column {
             width: 250px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .sidebar {
+            width: 100%;
             background: white;
             border-radius: 15px;
             padding: 20px;
@@ -813,15 +984,48 @@
 <body>
     <a href="admin.html" class="admin-link" title="Admin Panel">⚙️</a>
     <div class="container">
-        <div class="sidebar">
-            <h2>👥 Team Members</h2>
-            <div class="group-filters" id="groupFilters"></div>
-            <input type="text" class="search-input" id="personSearch" placeholder="🔍 Search...">
-            <div class="bulk-actions">
-                <button class="bulk-btn" id="selectAllVisible">Select all</button>
-                <button class="bulk-btn" id="deselectAllVisible">Deselect all</button>
+        <div class="sidebar-column">
+            <div class="sidebar">
+                <h2>👥 Team Members</h2>
+                <div class="group-filters" id="groupFilters"></div>
+                <input type="text" class="search-input" id="personSearch" placeholder="🔍 Search...">
+                <div class="bulk-actions">
+                    <button class="bulk-btn" id="selectAllVisible">Select all</button>
+                    <button class="bulk-btn" id="deselectAllVisible">Deselect all</button>
+                </div>
+                <div id="personList"></div>
             </div>
-            <div id="personList"></div>
+
+            <button class="games-button" id="gamesButton" title="Play a game">
+                <svg viewBox="0 0 240 150" aria-hidden="true">
+                    <defs>
+                        <linearGradient id="padBody" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0" stop-color="#4a4e69"/>
+                            <stop offset="1" stop-color="#22223b"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M62 18 H178 C214 18 230 44 236 84 C242 124 230 146 210 146 C190 146 180 122 166 106 H74 C60 122 50 146 30 146 C10 146 -2 124 4 84 C10 44 26 18 62 18 Z" fill="url(#padBody)" stroke="#111" stroke-width="3"/>
+                    <rect x="96" y="30" width="48" height="30" rx="6" fill="#2b2d42" stroke="#111" stroke-width="2"/>
+                    <circle cx="62" cy="64" r="24" fill="#1b1b2f"/>
+                    <rect x="55" y="46" width="14" height="36" rx="3" fill="#9a9cb8"/>
+                    <rect x="44" y="57" width="36" height="14" rx="3" fill="#9a9cb8"/>
+                    <circle cx="178" cy="64" r="28" fill="#1b1b2f"/>
+                    <circle cx="178" cy="46" r="9" fill="#2b2d42"/>
+                    <path d="M178 41 L183 50 H173 Z" fill="none" stroke="#3fd1a2" stroke-width="2"/>
+                    <circle cx="196" cy="64" r="9" fill="#2b2d42"/>
+                    <circle cx="196" cy="64" r="4.5" fill="none" stroke="#ff6b6b" stroke-width="2"/>
+                    <circle cx="178" cy="82" r="9" fill="#2b2d42"/>
+                    <path d="M174 78 L182 86 M182 78 L174 86" stroke="#7aa7ff" stroke-width="2"/>
+                    <circle cx="160" cy="64" r="9" fill="#2b2d42"/>
+                    <rect x="156" y="60" width="8" height="8" fill="none" stroke="#f08bd6" stroke-width="2"/>
+                    <circle cx="92" cy="100" r="16" fill="#111"/>
+                    <circle cx="92" cy="100" r="11" fill="#3a3d56"/>
+                    <circle cx="148" cy="100" r="16" fill="#111"/>
+                    <circle cx="148" cy="100" r="11" fill="#3a3d56"/>
+                    <circle cx="120" cy="84" r="5" fill="#111"/>
+                </svg>
+                🎮 Play a game
+            </button>
         </div>
 
         <div class="main-content">
@@ -839,6 +1043,33 @@
     </div>
 
 
+
+    <div class="games-overlay" id="gamesOverlay" aria-hidden="true">
+        <div class="games-stage">
+            <div class="puppet-row">
+                <svg viewBox="0 0 200 260" aria-hidden="true">
+                    <path d="M30 260 C34 200 60 176 100 176 C140 176 166 200 170 260 Z" fill="#111"/>
+                    <path d="M84 178 L100 214 L116 178 Z" fill="#f4f4f4"/>
+                    <path d="M100 190 L80 180 L80 200 Z M100 190 L120 180 L120 200 Z" fill="#b3001b"/>
+                    <circle cx="100" cy="190" r="5" fill="#7a0012"/>
+                    <path d="M44 84 C40 34 70 10 100 10 C130 10 160 34 156 84 C154 130 132 168 100 170 C68 168 46 130 44 84 Z" fill="#f2efe6" stroke="#111" stroke-width="3"/>
+                    <path d="M46 70 C46 30 72 6 100 6 C128 6 154 30 154 70 C146 46 128 30 100 28 C72 30 54 46 46 70 Z" fill="#111"/>
+                    <ellipse cx="76" cy="82" rx="14" ry="11" fill="#111"/>
+                    <ellipse cx="124" cy="82" rx="14" ry="11" fill="#111"/>
+                    <circle cx="76" cy="83" r="3.5" fill="#d1001f"/>
+                    <circle cx="124" cy="83" r="3.5" fill="#d1001f"/>
+                    <path d="M64 120 m-10 0 a10 10 0 1 0 20 0 a7 7 0 1 0 -14 0 a4 4 0 1 0 8 0" fill="none" stroke="#c4001a" stroke-width="3"/>
+                    <path d="M136 120 m-10 0 a10 10 0 1 0 20 0 a7 7 0 1 0 -14 0 a4 4 0 1 0 8 0" fill="none" stroke="#c4001a" stroke-width="3"/>
+                    <path d="M98 96 L94 118 L102 118" fill="none" stroke="#999" stroke-width="2"/>
+                    <path d="M80 140 Q100 148 120 140" fill="none" stroke="#b3001b" stroke-width="5" stroke-linecap="round"/>
+                    <path d="M84 142 L84 168 M116 142 L116 168" stroke="#999" stroke-width="2"/>
+                </svg>
+                <div class="puppet-bubble">I want to play a game.</div>
+            </div>
+            <div class="games-grid" id="gamesGrid"></div>
+            <button class="games-close" id="gamesClose">Not today</button>
+        </div>
+    </div>
 
     <div class="winner-overlay" id="winnerOverlay" aria-hidden="true">
         <div class="winner-stage">
@@ -1381,6 +1612,60 @@
             img.src = getAnimatedSpriteUrl(id);
         }
 
+        // Games are defined in config.json (managed via admin panel)
+        let GAMES = [];
+
+        function isImageIcon(icon) {
+            return /[\/.]/.test(icon);
+        }
+
+        function renderGames() {
+            const grid = document.getElementById('gamesGrid');
+            grid.innerHTML = '';
+            if (GAMES.length === 0) {
+                const empty = document.createElement('p');
+                empty.className = 'games-empty';
+                empty.textContent = 'No games yet. Add some in the admin panel.';
+                grid.appendChild(empty);
+                return;
+            }
+            GAMES.forEach(game => {
+                const tile = document.createElement('a');
+                tile.className = 'game-tile';
+                tile.href = game.url;
+
+                const icon = document.createElement('div');
+                icon.className = 'game-icon';
+                if (game.icon && isImageIcon(game.icon)) {
+                    const img = document.createElement('img');
+                    img.src = game.icon;
+                    img.alt = '';
+                    icon.appendChild(img);
+                } else {
+                    icon.textContent = game.icon || '🎮';
+                }
+
+                const name = document.createElement('span');
+                name.textContent = game.name;
+
+                tile.append(icon, name);
+                grid.appendChild(tile);
+            });
+        }
+
+        function openGames() {
+            renderGames();
+            const overlay = document.getElementById('gamesOverlay');
+            overlay.classList.add('active');
+            overlay.setAttribute('aria-hidden', 'false');
+        }
+
+        function closeGames() {
+            const overlay = document.getElementById('gamesOverlay');
+            overlay.classList.remove('active');
+            overlay.setAttribute('aria-hidden', 'true');
+        }
+
         function getAvatarUrl(name) {
             const lowercaseName = name.toLowerCase();
             return `./${lowercaseName}.png`;
@@ -1637,6 +1922,7 @@
                     if (cfg.groups) groups = cfg.groups;
                     if (Array.isArray(cfg.pokemonQuotes)) pokemonQuotes = cfg.pokemonQuotes;
                     if (typeof cfg.pokemonTalkChance === 'number') pokemonTalkChance = cfg.pokemonTalkChance;
+                    if (Array.isArray(cfg.games)) GAMES = cfg.games;
                 }
             } catch (e) { /* use defaults */ }
 
@@ -1656,6 +1942,14 @@
 
             document.getElementById('pickButton').addEventListener('click', pickShinyPokemon);
             document.getElementById('winnerClose').addEventListener('click', closeWinnerReveal);
+            document.getElementById('gamesButton').addEventListener('click', openGames);
+            document.getElementById('gamesClose').addEventListener('click', closeGames);
+            document.getElementById('gamesOverlay').addEventListener('click', (event) => {
+                if (event.target.id === 'gamesOverlay') closeGames();
+            });
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') closeGames();
+            });
             document.getElementById('winnerOverlay').addEventListener('click', (event) => {
                 if (event.target.id === 'winnerOverlay') closeWinnerReveal();
             });

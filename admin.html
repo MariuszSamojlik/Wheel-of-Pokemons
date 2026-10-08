@@ -619,6 +619,54 @@
 
         #mainContent.hidden { display: none; }
 
+        /* ── Games ───────────────────────────────────────────────────────────── */
+        .game-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .game-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #374151;
+        }
+
+        .game-item-icon {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            flex-shrink: 0;
+        }
+
+        .game-item-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .game-item-text {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .game-item-text strong { display: block; }
+
+        .game-item-text a {
+            font-size: 12px;
+            color: #6b7280;
+            word-break: break-all;
+        }
+
         /* ── Walking pokemon ─────────────────────────────────────────────────── */
         .talk-chance-row {
             display: flex;
@@ -724,6 +772,15 @@
                     <button class="btn btn-primary" id="addPersonBtn">+ Add Person</button>
                 </div>
                 <div id="peopleContainer"></div>
+            </div>
+
+            <!-- Games -->
+            <div class="card">
+                <div class="section-header">
+                    <h2>🎮 Games</h2>
+                    <button class="btn btn-primary" id="addGameBtn">+ Add Game</button>
+                </div>
+                <ul class="game-list" id="gameList"></ul>
             </div>
 
             <!-- Walking pokemon -->
@@ -839,6 +896,34 @@
         </div>
     </div>
 
+    <!-- ── Game modal ─────────────────────────────────────────────────────── -->
+    <div class="modal-backdrop hidden" id="gameModal">
+        <div class="modal">
+            <h3 id="gameModalTitle"></h3>
+            <div class="field">
+                <label>Name</label>
+                <input type="text" id="gameName" placeholder="e.g. Skribbl">
+            </div>
+            <div class="field">
+                <label>URL</label>
+                <input type="text" id="gameUrl" placeholder="https://skribbl.io">
+            </div>
+            <div class="field">
+                <label>Icon — emoji or image URL</label>
+                <input type="text" id="gameIcon" placeholder="e.g. 🎨 or https://…/icon.png">
+            </div>
+            <div class="field">
+                <label>…or upload an icon image</label>
+                <input type="file" id="gameIconFile" accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml">
+                <div class="hint">Saved in the repo as <code>games/{name}.{ext}</code> and overrides the field above.</div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" id="cancelGame">Cancel</button>
+                <button class="btn btn-primary" id="confirmGame">Save game</button>
+            </div>
+        </div>
+    </div>
+
     <!-- ── Preview modal (avatar / video) ─────────────────────────────────── -->
     <div class="modal-backdrop hidden" id="previewModal">
         <div class="modal preview-modal">
@@ -865,6 +950,8 @@
         let pendingRenames = [];   // { from, to } — asset renames applied at save time
         let pokemonList    = [];   // [{ id, name, sprite }] loaded from pokemon.json
         let hasChanges     = false;
+        let iconPreviews   = {};   // { path: dataUrl } for game icons not committed yet
+        let editingGame    = null; // index of the game being edited, null when adding
 
         // ── GitHub API helpers ────────────────────────────────────────────────
 
@@ -950,6 +1037,7 @@
             // Backwards compat: ensure pokemon map exists
             if (!config.pokemon) config.pokemon = {};
             if (!Array.isArray(config.pokemonQuotes)) config.pokemonQuotes = [];
+            if (!Array.isArray(config.games)) config.games = [];
             if (typeof config.pokemonTalkChance !== 'number') config.pokemonTalkChance = 50;
 
             // pokemon.json (static list of pokemons + sprites)
@@ -1074,12 +1162,41 @@
             renderGroups();
             renderPeople();
             renderQuotes();
+            renderGames();
+        }
+
+        function isImageIcon(icon) {
+            return /[\/.]/.test(icon);
+        }
+
+        function renderGames() {
+            const list = document.getElementById('gameList');
+            if (config.games.length === 0) {
+                list.innerHTML = '<li style="color:#9ca3af;font-size:14px;">No games yet. Click "+ Add Game" to create one.</li>';
+                return;
+            }
+            list.innerHTML = config.games.map((game, i) => {
+                const icon = game.icon || '🎮';
+                const iconHtml = isImageIcon(icon)
+                    ? `<img src="${escapeHtml(iconPreviews[icon] || icon)}" alt="">`
+                    : escapeHtml(icon);
+                return `
+                    <li class="game-item">
+                        <div class="game-item-icon">${iconHtml}</div>
+                        <div class="game-item-text">
+                            <strong>${escapeHtml(game.name)}</strong>
+                            <a href="${escapeHtml(game.url)}" target="_blank" rel="noopener">${escapeHtml(game.url)}</a>
+                        </div>
+                        <button class="small-btn" onclick="openGame(${i})">✏️ Edit</button>
+                        <button class="small-btn danger" onclick="removeGame(${i})">🗑 Delete</button>
+                    </li>`;
+            }).join('');
         }
 
         function escapeHtml(str) {
             const div = document.createElement('div');
             div.textContent = str;
-            return div.innerHTML;
+            return div.innerHTML.replace(/"/g, '&quot;');
         }
 
         function renderQuotes() {
@@ -1214,6 +1331,57 @@
                     </thead>
                     <tbody>${rows}</tbody>
                 </table>`;
+        }
+
+        // ── Game actions ──────────────────────────────────────────────────────
+
+        function openGame(index) {
+            editingGame = index;
+            const game = index === null ? { name: '', url: '', icon: '' } : config.games[index];
+            document.getElementById('gameModalTitle').textContent = index === null ? '🎮 Add Game' : '🎮 Edit Game';
+            document.getElementById('gameName').value = game.name;
+            document.getElementById('gameUrl').value = game.url;
+            document.getElementById('gameIcon').value = game.icon;
+            document.getElementById('gameIconFile').value = '';
+            document.getElementById('gameModal').classList.remove('hidden');
+            setTimeout(() => document.getElementById('gameName').focus(), 50);
+        }
+
+        function closeGame() {
+            document.getElementById('gameModal').classList.add('hidden');
+        }
+
+        async function confirmGame() {
+            const name = document.getElementById('gameName').value.trim();
+            const url  = document.getElementById('gameUrl').value.trim();
+            let icon   = document.getElementById('gameIcon').value.trim();
+            const file = document.getElementById('gameIconFile').files[0];
+
+            if (!name || !url) { alert('Name and URL are required.'); return; }
+            if (!/^https?:\/\//i.test(url)) { alert('URL must start with http:// or https://'); return; }
+
+            if (file) {
+                const ext  = file.name.split('.').pop().toLowerCase();
+                const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'game';
+                icon = `games/${slug}.${ext}`;
+                const content = await fileToBase64(file);
+                pendingUploads = pendingUploads.filter(u => u.path !== icon);
+                pendingUploads.push({ path: icon, content });
+                iconPreviews[icon] = `data:${file.type};base64,${content}`;
+            }
+
+            const game = { name, url, icon };
+            if (editingGame === null) config.games.push(game);
+            else config.games[editingGame] = game;
+
+            closeGame();
+            markChanged(); renderGames();
+        }
+
+        function removeGame(index) {
+            if (!confirm(`Delete game "${config.games[index].name}"?`)) return;
+            config.games.splice(index, 1);
+            markChanged(); renderGames();
         }
 
         // ── Quote actions ─────────────────────────────────────────────────────
@@ -1720,6 +1888,12 @@
         document.getElementById('addPersonBtn').addEventListener('click', openAddPerson);
         document.getElementById('saveBtn').addEventListener('click', saveAll);
         document.getElementById('addQuoteBtn').addEventListener('click', addQuote);
+        document.getElementById('addGameBtn').addEventListener('click', () => openGame(null));
+        document.getElementById('cancelGame').addEventListener('click', closeGame);
+        document.getElementById('confirmGame').addEventListener('click', confirmGame);
+        document.getElementById('gameModal').addEventListener('click', e => {
+            if (e.target === document.getElementById('gameModal')) closeGame();
+        });
         document.getElementById('newQuote').addEventListener('keydown', e => {
             if (e.key === 'Enter') addQuote();
         });
@@ -1775,6 +1949,8 @@
         window.openPreview   = openPreview;
         window.editQuote     = editQuote;
         window.removeQuote   = removeQuote;
+        window.openGame      = openGame;
+        window.removeGame    = removeGame;
 
         // ── Auto-connect if token is already in session ───────────────────────
         if (token) {
