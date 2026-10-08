@@ -205,47 +205,56 @@
             border-right-color: #1a1a1a;
         }
 
+        /* Max 5 tiles per row: 5 × 130px + 4 × 20px gap */
         .games-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-            gap: 14px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
             width: 100%;
+            max-width: 730px;
         }
 
         .game-tile {
+            width: 130px;
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 10px;
-            padding: 16px 10px;
-            background: white;
-            border-radius: 14px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-            color: #333;
-            font-weight: bold;
-            font-size: 14px;
-            text-align: center;
             text-decoration: none;
             transition: transform 0.18s ease;
         }
 
         .game-tile:hover {
-            transform: translateY(-4px);
+            transform: translateY(-4px) scale(1.05);
         }
 
         .game-icon {
-            width: 64px;
-            height: 64px;
+            width: 110px;
+            height: 110px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 48px;
+            font-size: 84px;
+            filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.45));
         }
 
         .game-icon img {
             width: 100%;
             height: 100%;
             object-fit: contain;
+        }
+
+        .game-name {
+            max-width: 100%;
+            padding: 5px 12px;
+            background: white;
+            border: 2px solid #1a1a1a;
+            border-radius: 999px;
+            color: #1a1a1a;
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
         }
 
         .games-empty {
@@ -1652,6 +1661,7 @@
                 }
 
                 const name = document.createElement('span');
+                name.className = 'game-name';
                 name.textContent = game.name;
 
                 tile.append(icon, name);
