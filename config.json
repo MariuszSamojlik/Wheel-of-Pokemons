@@ -153,6 +153,36 @@
       "name": "Skribbl",
       "url": "https://Skribbl.io",
       "icon": "https://skribblgame.io//data/image/game/skribbl-game-banner.jpg"
+    },
+    {
+      "name": "bonk.io",
+      "url": "https://bonk.io/",
+      "icon": "https://holeonline.io//data/image/game/bonk-io1.jpg"
+    },
+    {
+      "name": "Quiz Of The Day",
+      "url": "https://quizoftheday.co.uk/",
+      "icon": "https://quizoftheday.co.uk/img/logo-optimized.jpg"
+    },
+    {
+      "name": "TimeGuessr",
+      "url": "https://timeguessr.com/",
+      "icon": "https://images.seeklogo.com/logo-png/63/1/timeguessr-logo-png_seeklogo-632613.png"
+    },
+    {
+      "name": "Wordle",
+      "url": "https://www.nytimes.com/games/wordle/index.html",
+      "icon": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c5/Wordle_Logo.svg/960px-Wordle_Logo.svg.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail"
+    },
+    {
+      "name": "General Knowledge",
+      "url": "https://general-knowledge-jgn6.onrender.com/room/A2K9XT",
+      "icon": "games/general-knowledge.png"
+    },
+    {
+      "name": "Price Check",
+      "url": "https://price-check-x4sb.onrender.com/djteam",
+      "icon": "games/price-check.png"
     }
   ]
 }
