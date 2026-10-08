@@ -128,5 +128,23 @@
     "Tanu": 35,
     "Tony": 52,
     "Hec": 83
-  }
+  },
+  "pokemonTalkChance": 50,
+  "pokemonQuotes": [
+    "There is no single 'i' in Sliide. There are two.",
+    "Pika pika! (Translation: is this a blocker?)",
+    "I've been stuck 'in progress' since Gen 1.",
+    "Works on my Pokéball.",
+    "Can we take this offline? I'm going offscreen anyway.",
+    "Let's circle back. I'll walk the circle.",
+    "Sprint? I only walk.",
+    "My estimate is 3 points. Or 3 evolutions.",
+    "Gotta merge 'em all!",
+    "Daily standup? I'm more of a daily walkthrough.",
+    "Don't mind me, just looking for a quiet place to deploy.",
+    "Have you tried turning your Pokéball off and on again?",
+    "Ship it! (Water types only)",
+    "I'm not lazy, I'm in low-power mode.",
+    "Merge conflict? Use Thunderbolt."
+  ]
 }

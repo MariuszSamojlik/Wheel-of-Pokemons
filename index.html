@@ -1270,12 +1270,13 @@
             });
         }
 
-        // Pikachu, Bulbasaur, Charmander, Squirtle, Eevee
-        const WALKING_POKEMON_IDS = [25, 1, 4, 7, 133];
+        // All Gen 1 pokemon (#1 Bulbasaur – #151 Mew)
+        const WALKING_POKEMON_IDS = Array.from({ length: 151 }, (_, i) => i + 1);
         const WALK_DURATION_MS = 7000;
         const TALK_PAUSE_MS = 2000;
-        const TALK_CHANCE = 0.5;
-        const POKEMON_QUOTES = [
+        // Defaults, overridden by pokemonTalkChance / pokemonQuotes in config.json
+        let pokemonTalkChance = 50;
+        let pokemonQuotes = [
             "There is no single 'i' in Sliide. There are two.",
             "Pika pika! (Translation: is this a blocker?)",
             "I've been stuck 'in progress' since Gen 1.",
@@ -1336,12 +1337,12 @@
 
                 const bubble = document.createElement('div');
                 bubble.className = 'speech-bubble';
-                bubble.textContent = POKEMON_QUOTES[Math.floor(Math.random() * POKEMON_QUOTES.length)];
+                bubble.textContent = pokemonQuotes[Math.floor(Math.random() * pokemonQuotes.length)];
                 bubble.style.visibility = 'hidden';
                 walker.appendChild(bubble);
                 document.body.appendChild(walker);
 
-                const talks = Math.random() < TALK_CHANCE;
+                const talks = pokemonQuotes.length > 0 && Math.random() * 100 < pokemonTalkChance;
                 // Walk far enough offscreen that a bubble wider than the sprite also disappears
                 const overhang = talks ? Math.max(0, (bubble.offsetWidth - walker.offsetWidth) / 2) : 0;
                 const offscreenLeft = -walker.offsetWidth - overhang;
@@ -1634,6 +1635,8 @@
                     const cfg = await res.json();
                     if (cfg.people && cfg.people.length > 0) people = cfg.people;
                     if (cfg.groups) groups = cfg.groups;
+                    if (Array.isArray(cfg.pokemonQuotes)) pokemonQuotes = cfg.pokemonQuotes;
+                    if (typeof cfg.pokemonTalkChance === 'number') pokemonTalkChance = cfg.pokemonTalkChance;
                 }
             } catch (e) { /* use defaults */ }
 

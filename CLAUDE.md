@@ -37,6 +37,7 @@ Lista osób i grup żyje w **`config.json`** i jest zarządzana z panelu admina 
 
 - **`admin.html`** — GUI do edycji `config.json`: dodawanie/usuwanie osób, przypisywanie do grup, upload avatarów (`{name}.png`) i filmików picked (`{name}_picked.mp4`). Zmiany są commitowane bezpośrednio do repo przez GitHub API (wymaga Personal Access Token wklejonego w panelu).
 - **`index.html`** ładuje `config.json` przy starcie (`fetch('./config.json')`). Jeśli fetch się nie uda (np. serwowanie przez `file://` albo brak pliku), używa hardcoded fallbacku `_DEFAULT_PEOPLE` / `_DEFAULT_GROUPS` w źródle — ta lista jest historyczna i może być nieaktualna względem `config.json`.
+- **Chodzący pokemon** — losowy pokemon z Gen 1 (#1–#151, animowane sprite'y Showdown z PokeAPI) co jakiś czas przechodzi przez dół ekranu i czasem zatrzymuje się, żeby coś powiedzieć. Szansa (`pokemonTalkChance`, 0–100) i teksty (`pokemonQuotes`) są w `config.json` i edytowalne w panelu admina.
 - **Assety** — każda osoba powinna mieć swój `{name}.png`. `{name}_picked.mp4` jest opcjonalny; przy braku aplikacja spada z fallbackiem do zwykłego avatara w overlayzie wylosowania.
 
 ## Kluczowe decyzje techniczne

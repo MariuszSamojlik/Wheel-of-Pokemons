@@ -618,6 +618,66 @@
         .auth-error.hidden { display: none; }
 
         #mainContent.hidden { display: none; }
+
+        /* ── Walking pokemon ─────────────────────────────────────────────────── */
+        .talk-chance-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .talk-chance-row input[type=range] {
+            flex: 1;
+            max-width: 320px;
+            accent-color: #764ba2;
+        }
+
+        .talk-chance-row output {
+            min-width: 44px;
+            font-weight: 700;
+            color: #764ba2;
+        }
+
+        .quote-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .quote-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #374151;
+        }
+
+        .quote-item span { flex: 1; }
+
+        .add-quote-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .add-quote-row input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .add-quote-row input:focus { border-color: #764ba2; }
     </style>
 </head>
 <body>
@@ -664,6 +724,23 @@
                     <button class="btn btn-primary" id="addPersonBtn">+ Add Person</button>
                 </div>
                 <div id="peopleContainer"></div>
+            </div>
+
+            <!-- Walking pokemon -->
+            <div class="card">
+                <div class="section-header">
+                    <h2>💬 Walking Pokemon Quotes</h2>
+                </div>
+                <label class="talk-chance-row">
+                    Chance to stop and talk
+                    <input type="range" id="talkChance" min="0" max="100" step="5">
+                    <output id="talkChanceValue"></output>
+                </label>
+                <ul class="quote-list" id="quoteList"></ul>
+                <div class="add-quote-row">
+                    <input type="text" id="newQuote" placeholder="e.g. There is no single 'i' in Sliide." maxlength="120">
+                    <button class="btn btn-primary" id="addQuoteBtn">+ Add Quote</button>
+                </div>
             </div>
 
         </div>
@@ -808,6 +885,11 @@
             return btoa(unescape(encodeURIComponent(str)));
         }
 
+        // Safe base64 decode for unicode strings
+        function fromBase64(b64) {
+            return decodeURIComponent(escape(atob(b64)));
+        }
+
         function fileToBase64(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -852,7 +934,7 @@
             if (cfgRes.ok) {
                 const data = await cfgRes.json();
                 configSha = data.sha;
-                config = JSON.parse(atob(data.content.replace(/\s/g, '')));
+                config = JSON.parse(fromBase64(data.content.replace(/\s/g, '')));
             } else {
                 // First run: seed with defaults so the admin can see something
                 config = {
@@ -867,6 +949,8 @@
             }
             // Backwards compat: ensure pokemon map exists
             if (!config.pokemon) config.pokemon = {};
+            if (!Array.isArray(config.pokemonQuotes)) config.pokemonQuotes = [];
+            if (typeof config.pokemonTalkChance !== 'number') config.pokemonTalkChance = 50;
 
             // pokemon.json (static list of pokemons + sprites)
             try {
@@ -989,6 +1073,30 @@
         function render() {
             renderGroups();
             renderPeople();
+            renderQuotes();
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function renderQuotes() {
+            document.getElementById('talkChance').value = config.pokemonTalkChance;
+            document.getElementById('talkChanceValue').textContent = `${config.pokemonTalkChance}%`;
+
+            const list = document.getElementById('quoteList');
+            if (config.pokemonQuotes.length === 0) {
+                list.innerHTML = '<li style="color:#9ca3af;font-size:14px;">No quotes yet — pokemon will just walk by silently.</li>';
+                return;
+            }
+            list.innerHTML = config.pokemonQuotes.map((quote, i) => `
+                <li class="quote-item">
+                    <span>${escapeHtml(quote)}</span>
+                    <button class="small-btn" onclick="editQuote(${i})">✏️ Edit</button>
+                    <button class="small-btn danger" onclick="removeQuote(${i})">🗑 Delete</button>
+                </li>`).join('');
         }
 
         function renderGroups() {
@@ -1106,6 +1214,31 @@
                     </thead>
                     <tbody>${rows}</tbody>
                 </table>`;
+        }
+
+        // ── Quote actions ─────────────────────────────────────────────────────
+
+        function addQuote() {
+            const input = document.getElementById('newQuote');
+            const quote = input.value.trim();
+            if (!quote) return;
+            if (config.pokemonQuotes.includes(quote)) { alert('Quote already exists.'); return; }
+            config.pokemonQuotes.push(quote);
+            input.value = '';
+            markChanged(); renderQuotes();
+        }
+
+        function editQuote(index) {
+            const updated = prompt('Edit quote:', config.pokemonQuotes[index]);
+            if (updated === null || !updated.trim()) return;
+            config.pokemonQuotes[index] = updated.trim();
+            markChanged(); renderQuotes();
+        }
+
+        function removeQuote(index) {
+            if (!confirm(`Delete quote "${config.pokemonQuotes[index]}"?`)) return;
+            config.pokemonQuotes.splice(index, 1);
+            markChanged(); renderQuotes();
         }
 
         // ── Group actions ─────────────────────────────────────────────────────
@@ -1586,6 +1719,15 @@
         document.getElementById('addGroupBtn').addEventListener('click', addGroup);
         document.getElementById('addPersonBtn').addEventListener('click', openAddPerson);
         document.getElementById('saveBtn').addEventListener('click', saveAll);
+        document.getElementById('addQuoteBtn').addEventListener('click', addQuote);
+        document.getElementById('newQuote').addEventListener('keydown', e => {
+            if (e.key === 'Enter') addQuote();
+        });
+        document.getElementById('talkChance').addEventListener('input', e => {
+            config.pokemonTalkChance = Number(e.target.value);
+            document.getElementById('talkChanceValue').textContent = `${config.pokemonTalkChance}%`;
+            markChanged();
+        });
 
         document.getElementById('cancelUpload').addEventListener('click', closeUpload);
         document.getElementById('confirmUpload').addEventListener('click', confirmUploadFiles);
@@ -1631,6 +1773,8 @@
         window.openUpload    = openUpload;
         window.removePerson  = removePerson;
         window.openPreview   = openPreview;
+        window.editQuote     = editQuote;
+        window.removeQuote   = removeQuote;
 
         // ── Auto-connect if token is already in session ───────────────────────
         if (token) {
