@@ -189,6 +189,11 @@
       "name": "Wavelength",
       "url": "https://wavelengthonline.io/",
       "icon": "games/wavelength.png"
+    },
+    {
+      "name": "Codenames",
+      "url": "https://codenames.game/",
+      "icon": "games/codenames.png"
     }
   ]
 }
