@@ -184,6 +184,11 @@
       "name": "Price Check",
       "url": "https://price-check-x4sb.onrender.com/djteam",
       "icon": "games/price-check.png"
+    },
+    {
+      "name": "Wavelength",
+      "url": "https://wavelengthonline.io/",
+      "icon": "games/wavelength.png"
     }
   ]
 }
