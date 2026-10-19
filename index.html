@@ -275,8 +275,12 @@
         }
 
         .container {
-            display: flex;
-            gap: 20px;
+            display: grid;
+            grid-template-columns: 250px minmax(0, 1fr) 206px;
+            grid-template-areas:
+                ".       title   ."
+                "sidebar main    action";
+            column-gap: 20px;
             max-width: 1600px;
             margin: 0 auto;
             position: relative;
@@ -284,8 +288,7 @@
         }
 
         .sidebar-column {
-            width: 250px;
-            flex-shrink: 0;
+            grid-area: sidebar;
             display: flex;
             flex-direction: column;
             gap: 16px;
@@ -429,10 +432,11 @@
         }
 
         .main-content {
-            flex: 1;
+            grid-area: main;
         }
 
         h1 {
+            grid-area: title;
             text-align: center;
             color: white;
             font-size: 42px;
@@ -474,6 +478,96 @@
         .pokemon-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+
+        /* ── Remove-from-pool badge ("run away") ──────────────────────────── */
+        .card-slot {
+            position: relative;
+        }
+
+        .card-remove {
+            position: absolute;
+            top: -9px;
+            right: -9px;
+            z-index: 3;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 3px solid white;
+            background: #e74c3c;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            line-height: 1;
+            cursor: pointer;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.35);
+            opacity: 0;
+            transform: scale(0.6);
+            transition: opacity 0.15s, transform 0.15s, background 0.15s;
+        }
+
+        .card-slot:hover .card-remove,
+        .card-remove:focus-visible {
+            opacity: 1;
+            transform: translateY(-5px) scale(1);
+        }
+
+        .card-slot .card-remove:hover {
+            background: #c0392b;
+            transform: translateY(-5px) scale(1.12);
+        }
+
+        @media (hover: none) {
+            .card-remove {
+                opacity: 0.75;
+                transform: scale(0.85);
+            }
+        }
+
+        .cards-container.locked .card-remove,
+        .card-slot.fleeing .card-remove {
+            display: none;
+        }
+
+        .card-slot.fleeing {
+            pointer-events: none;
+        }
+
+        .card-slot.fleeing .pokemon-card {
+            animation: card-flee 0.9s linear forwards;
+        }
+
+        @keyframes card-flee {
+            /* wind-up decelerates into the apex, take-off accelerates out of it — no velocity jump */
+            0%   { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1;
+                   animation-timing-function: cubic-bezier(0.33, 1, 0.68, 1); }
+            30%  { transform: translate(-10px, -16px) rotate(-7deg) scale(1.03); opacity: 1;
+                   animation-timing-function: cubic-bezier(0.45, 0, 0.75, 0.4); }
+            100% { transform: translate(140%, -30px) rotate(28deg) scale(0.4); opacity: 0; }
+        }
+
+        .flee-toast {
+            position: absolute;
+            z-index: 50;
+            transform: translate(-50%, -50%);
+            padding: 8px 14px;
+            background: white;
+            color: #1a1a1a;
+            border: 3px solid #1a1a1a;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 15px;
+            font-weight: bold;
+            white-space: nowrap;
+            pointer-events: none;
+            animation: flee-toast 1.4s ease-out forwards;
+        }
+
+        @keyframes flee-toast {
+            0%   { opacity: 0; margin-top: 10px; }
+            15%  { opacity: 1; margin-top: 0; }
+            75%  { opacity: 1; margin-top: -14px; }
+            100% { opacity: 0; margin-top: -24px; }
         }
 
         .card-header {
@@ -559,8 +653,8 @@
 
         /* ── Action panel (right sticky column) ───────────────────────────── */
         .action-panel {
+            grid-area: action;
             width: 190px;
-            flex-shrink: 0;
             position: sticky;
             top: 80px;
             align-self: flex-start;
@@ -576,7 +670,6 @@
             flex-direction: column;
             align-items: center;
             gap: 18px;
-            margin-top: 72px;
         }
 
         /* CSS Pokéball */
@@ -1007,8 +1100,9 @@
             </div>
         </div>
 
+        <h1>Wheel of Pokemons</h1>
+
         <div class="main-content">
-            <h1>Wheel of Pokemons</h1>
             <div class="cards-container" id="cardsContainer"></div>
         </div>
 
@@ -1844,6 +1938,10 @@
         function renderCards() {
             const container = document.getElementById('cardsContainer');
             container.innerHTML = selectedPeople.map(person => `
+                <div class="card-slot">
+                <button class="card-remove" title="Remove ${person.name} from the pool"
+                        aria-label="Remove ${person.name} from the pool"
+                        onclick="fleeCard('${person.name}', this)">×</button>
                 <div class="pokemon-card" data-name="${person.name}">
                     <div class="card-header">
                         <div class="card-name">${person.name}</div>
@@ -1864,7 +1962,57 @@
                         <div>Escape: ${person.escape}</div>
                     </div>
                 </div>
+                </div>
             `).join('');
+        }
+
+        function fleeCard(name, button) {
+            if (isRolling) return;
+            const slot = button.closest('.card-slot');
+            if (!slot || slot.classList.contains('fleeing')) return;
+
+            const rect = slot.getBoundingClientRect();
+            const toast = document.createElement('div');
+            toast.className = 'flee-toast';
+            toast.textContent = `${name} got away safely!`;
+            toast.style.left = (rect.left + rect.width / 2 + window.scrollX) + 'px';
+            toast.style.top = (rect.top + rect.height / 2 + window.scrollY) + 'px';
+            document.body.appendChild(toast);
+            toast.addEventListener('animationend', () => toast.remove());
+
+            slot.classList.add('fleeing');
+            slot.querySelector('.pokemon-card').addEventListener('animationend', () => {
+                if (currentShiny === name) currentShiny = null;
+                const before = getCardSlotPositions();
+                togglePerson(name);
+                renderPersonList();
+                animateCardsFrom(before);
+            }, { once: true });
+        }
+
+        function getCardSlotPositions() {
+            const positions = new Map();
+            document.querySelectorAll('.card-slot').forEach(slot => {
+                const name = slot.querySelector('.pokemon-card').dataset.name;
+                positions.set(name, slot.getBoundingClientRect());
+            });
+            return positions;
+        }
+
+        // FLIP: slide each card from its old position to the new one after a re-render
+        function animateCardsFrom(before) {
+            document.querySelectorAll('.card-slot').forEach(slot => {
+                const old = before.get(slot.querySelector('.pokemon-card').dataset.name);
+                if (!old) return;
+                const now = slot.getBoundingClientRect();
+                const dx = old.left - now.left;
+                const dy = old.top - now.top;
+                if (!dx && !dy) return;
+                slot.animate(
+                    [{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'translate(0, 0)' }],
+                    { duration: 500, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' }
+                );
+            });
         }
 
         function renderChallengerCount() {
@@ -1879,6 +2027,7 @@
             if (isRolling || selectedPeople.length === 0) return;
 
             isRolling = true;
+            document.getElementById('cardsContainer').classList.add('locked');
             document.getElementById('pickButton').disabled = true;
             document.getElementById('pokeballDeco').classList.add('throwing');
 
@@ -1923,6 +2072,7 @@
             showWinnerReveal(winner.name);
 
             isRolling = false;
+            document.getElementById('cardsContainer').classList.remove('locked');
             document.getElementById('pickButton').disabled = false;
             document.getElementById('pokeballDeco').classList.remove('throwing');
         }
