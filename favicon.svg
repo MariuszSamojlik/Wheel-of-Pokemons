@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="824" height="824" viewBox="100 100 824 824">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3b4cca"/>
+      <stop offset="1" stop-color="#1a1f5c"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.45" r="0.55">
+      <stop offset="0" stop-color="#ffde00" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#ffde00" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="red" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff5a4e"/>
+      <stop offset="1" stop-color="#d4121f"/>
+    </linearGradient>
+    <linearGradient id="white" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#d9dde8"/>
+    </linearGradient>
+    <radialGradient id="btn" cx="0.4" cy="0.35" r="0.7">
+      <stop offset="0" stop-color="#2e3440"/>
+      <stop offset="1" stop-color="#11141a"/>
+    </radialGradient>
+    <clipPath id="ball"><circle cx="512" cy="500" r="300"/></clipPath>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#000" flood-opacity="0.45"/>
+    </filter>
+    <filter id="bodyshadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- macOS-style rounded tile -->
+  <g>
+    <rect x="100" y="100" width="824" height="824" rx="185" fill="url(#bg)"/>
+  </g>
+  <rect x="100" y="100" width="824" height="824" rx="185" fill="url(#glow)"/>
+
+  <!-- sparkles -->
+  <g fill="#ffde00">
+    <path d="M232 230 l12 30 30 12 -30 12 -12 30 -12 -30 -30 -12 30 -12z"/>
+    <path d="M800 260 l8 20 20 8 -20 8 -8 20 -8 -20 -20 -8 20 -8z" opacity="0.85"/>
+    <path d="M790 770 l10 24 24 10 -24 10 -10 24 -10 -24 -24 -10 24 -10z" opacity="0.9"/>
+    <circle cx="215" cy="760" r="7" opacity="0.7"/>
+    <circle cx="300" cy="840" r="5" opacity="0.6"/>
+    <circle cx="860" cy="520" r="6" opacity="0.6"/>
+  </g>
+
+  <!-- Pokéball -->
+  <g filter="url(#shadow)">
+    <circle cx="512" cy="500" r="300" fill="url(#white)"/>
+  </g>
+  <g clip-path="url(#ball)">
+    <rect x="200" y="190" width="624" height="310" fill="url(#red)"/>
+    <!-- shine -->
+    <ellipse cx="420" cy="320" rx="120" ry="60" fill="#fff" opacity="0.28" transform="rotate(-28 420 320)"/>
+    <rect x="200" y="476" width="624" height="48" fill="#141821"/>
+  </g>
+  <circle cx="512" cy="500" r="300" fill="none" stroke="#141821" stroke-width="22"/>
+
+  <!-- center button with terminal prompt -->
+  <circle cx="512" cy="500" r="108" fill="#141821"/>
+  <circle cx="512" cy="500" r="82" fill="url(#btn)" stroke="#f4f5f9" stroke-width="14"/>
+  <g fill="none" stroke="#ffde00" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="470,470 500,500 470,530"/>
+  </g>
+  <rect x="512" y="522" width="44" height="15" rx="7" fill="#ffde00"/>
+</svg>
