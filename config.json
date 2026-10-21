@@ -37,17 +37,18 @@
     "Matt",
     "Diana",
     "Ana",
-    "Ridhiman"
+    "Ridhiman",
+    "Jack"
   ],
   "groups": {
     "Centris": [
       "Sam",
       "Tanu",
       "Tony",
-      "Sachin"
+      "Sachin",
+      "Jack"
     ],
     "Destination Journey": [
-      "Ankit",
       "Mariusz",
       "Minesh",
       "Paul",
@@ -128,7 +129,8 @@
     "Tanu": 35,
     "Tony": 52,
     "Hec": 83,
-    "Satya": 114
+    "Satya": 114,
+    "Jack": 55
   },
   "pokemonTalkChance": 60,
   "pokemonWalkGap": 20,
